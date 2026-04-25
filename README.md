@@ -6,7 +6,7 @@
 
 * **Backend**: Laravel 13
 * **Frontend**: Tailwind CSS, JavaScript
-* **Database**: SQLite (Free Hosting)
+* **Database**: MySQL
 
 Sistem ini mendukung dua peran utama:
 
