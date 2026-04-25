@@ -1,58 +1,193 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📊 RoomSense — Software Quality Testing Report
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 📌 Deskripsi Sistem
 
-## About Laravel
+**RoomSense** adalah sistem berbasis web untuk peminjaman ruangan kampus yang dikembangkan menggunakan:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* **Backend**: Laravel 13
+* **Frontend**: Tailwind CSS, JavaScript
+* **Database**: SQLite (Free Hosting)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Sistem ini mendukung dua peran utama:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **User**: melakukan booking ruangan dan melihat status
+* **Admin**: mengelola ruangan dan melakukan approval booking
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🎯 Tujuan Pengujian
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Pengujian dilakukan untuk mengevaluasi kualitas sistem berdasarkan aspek:
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+* Performance (Kinerja)
+* Reliability (Keandalan)
+* Usability (Kemudahan penggunaan)
+* Security (Keamanan)
+* Data Consistency (Konsistensi data)
 
-## Agentic Development
+Pendekatan pengujian berfokus pada:
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+* Skenario penggunaan nyata
+* Edge cases
+* Validasi logika sistem
+* Role-based access control
 
-```bash
-composer require laravel/boost --dev
+> ⚠️ Catatan: Pengujian dilakukan pada lingkungan free hosting, sehingga tidak mencakup stress testing skala besar.
 
-php artisan boost:install
+---
+
+## 🧪 Hasil Pengujian
+
+| No | Aspek Kualitas   | Skenario Uji                      | Hasil yang Diharapkan | Status                   |
+| -- | ---------------- | --------------------------------- | --------------------- | ------------------------ |
+| 1  | Performance      | Load halaman daftar ruangan       | < 2 detik             | ⚠️ Perlu optimasi        |
+| 2  | Performance      | Dashboard user dengan banyak data | Responsif             | ✅ Baik                   |
+| 3  | Performance      | Dashboard admin (banyak booking)  | < 2 detik             | ⚠️ Perlu optimasi query  |
+| 4  | Performance      | Upload banyak gambar              | Tidak timeout         | ⚠️ Tergantung hosting    |
+| 5  | Performance      | Rekomendasi ruangan alternatif    | Cepat & efisien       | ⚠️ Perlu optimasi        |
+| 6  | Reliability      | Booking di tanggal hari ini       | Valid                 | ⚠️ Risiko timezone       |
+| 7  | Reliability      | Validasi waktu booking            | Tidak boleh sama      | ✅ Valid                  |
+| 8  | Reliability      | Cancel booking approved           | Ditolak               | ✅ Valid                  |
+| 9  | Reliability      | Cancel booking user lain          | Ditolak (403)         | ✅ Aman                   |
+| 10 | Reliability      | Nonaktifkan ruangan aktif         | Konsisten             | ⚠️ Perlu notifikasi      |
+| 11 | Usability        | Login salah password              | Error jelas           | ✅ Baik                   |
+| 12 | Usability        | Booking dari detail ruangan       | Auto select           | ⚠️ UX bisa membingungkan |
+| 13 | Usability        | Approve booking                   | Berhasil & jelas      | ✅ Baik                   |
+| 14 | Usability        | Reject tanpa alasan               | Harus ditolak         | ⚠️ Validasi server perlu |
+| 15 | Usability        | Redirect berdasarkan role         | Benar                 | ✅ Baik                   |
+| 16 | Security         | Akses admin oleh user biasa       | Ditolak               | ✅ Aman                   |
+| 17 | Security         | Akses tanpa login                 | Redirect login        | ✅ Aman                   |
+| 18 | Security         | SQL Injection                     | Tidak berhasil        | ✅ Aman                   |
+| 19 | Security         | XSS                               | Tidak dieksekusi      | ✅ Aman                   |
+| 20 | Security         | CSRF attack                       | Ditolak               | ✅ Aman                   |
+| 21 | Security         | Mass assignment                   | Aman                  | ✅ Aman                   |
+| 22 | Security         | Upload file berbahaya             | Ditolak               | ✅ Aman                   |
+| 23 | Data Consistency | Double booking (pending)          | Masih diperbolehkan   | ✅ Sesuai desain          |
+| 24 | Data Consistency | Double approval (race condition)  | Harus dicegah         | ❌ Perlu perbaikan        |
+| 25 | Data Consistency | Hapus ruangan dengan histori      | Data tetap aman       | ⚠️ Perlu soft delete     |
+
+---
+
+## 🔴 Temuan Utama
+
+### 1. Potensi Race Condition pada Approval Booking
+
+Jika dua admin melakukan approval secara bersamaan pada booking yang konflik, sistem berpotensi menyetujui keduanya.
+
+**Dampak:**
+
+* Double booking pada waktu yang sama
+
+---
+
+### 2. Validasi Alasan Penolakan (Reject) Belum Konsisten
+
+Validasi hanya dilakukan di sisi frontend (HTML), belum di backend.
+
+**Dampak:**
+
+* Booking bisa ditolak tanpa alasan
+
+---
+
+### 3. Optimasi Query (N+1 Problem)
+
+Beberapa fitur seperti:
+
+* Daftar ruangan
+* Rekomendasi alternatif
+
+masih melakukan query berulang.
+
+**Dampak:**
+
+* Performa menurun saat data banyak
+
+---
+
+## 🛠️ Rekomendasi Perbaikan
+
+### ✔ 1. Perbaikan Race Condition
+
+Gunakan:
+
+* Database transaction
+* Locking (`lockForUpdate()` jika memungkinkan)
+
+---
+
+### ✔ 2. Validasi Backend
+
+Tambahkan validasi:
+
+* Alasan reject wajib diisi saat status = rejected
+
+---
+
+### ✔ 3. Optimasi Query
+
+Gunakan:
+
+* Eager loading (`with()`)
+* Query aggregation
+* Hindari loop query (N+1)
+
+---
+
+### ✔ 4. Pengaturan Timezone
+
+Set:
+
+```env
+APP_TIMEZONE=Asia/Jakarta
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+### ✔ 5. Gunakan Soft Delete
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Agar histori data tidak hilang saat ruangan dihapus.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 📊 Ringkasan Kualitas Sistem
 
-## Security Vulnerabilities
+| Aspek            | Status               |
+| ---------------- | -------------------- |
+| Performance      | ⚠️ Perlu optimasi    |
+| Reliability      | ✅ Baik               |
+| Usability        | ✅ Baik               |
+| Security         | ✅ Aman               |
+| Data Consistency | ⚠️ Perlu peningkatan |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 📈 Kesimpulan
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Secara keseluruhan, sistem **RoomSense**:
+
+* ✔ Sudah berjalan dengan baik secara fungsional
+* ✔ Aman dari sisi keamanan dasar
+* ✔ Memiliki struktur sistem yang solid
+
+Namun masih terdapat beberapa hal yang perlu ditingkatkan:
+
+* Optimasi performa
+* Penanganan concurrency
+* Validasi backend
+
+Dengan perbaikan tersebut, sistem akan menjadi lebih stabil, scalable, dan siap digunakan dalam skenario nyata.
+
+---
+
+## 📌 Keterkaitan dengan Daily Project 6
+
+Pengujian ini dilakukan berdasarkan hasil analisis kompetitor pada Daily Project 6, yang menghasilkan identifikasi aspek kualitas utama:
+
+* Performance
+* Reliability
+* Usability
+* Security
+* Data Consistency
+
+Sehingga pengujian ini merupakan implementasi langsung dari kebutuhan kualitas sistem yang telah dianalisis sebelumnya.
