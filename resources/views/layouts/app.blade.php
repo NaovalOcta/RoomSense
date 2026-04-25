@@ -62,10 +62,10 @@
                                   {{ request()->routeIs('rooms.*') ? 'bg-blue-600/20 text-blue-300' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                             Browse Rooms
                         </a>
-                        <a href="{{ route('bookings.create') }}"
+                        {{-- <a href="{{ route('bookings.create') }}"
                             class="ml-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-blue-600/20">
                             + Book a Room
-                        </a>
+                        </a> --}}
                     @endif
                 </div>
 
@@ -99,20 +99,21 @@
     </nav>
 
     <!-- ── Flash Alerts ── -->
-    @if (session('success') || session('error'))
+    @if (session('success') || session('error') || session('warning') || $errors->any())
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
             @if (session('success'))
                 <x-alert type="success" :message="session('success')" />
+            @endif
+            @if (session('warning'))
+                <x-alert type="warning" :message="session('warning')" />
             @endif
             @if (session('error'))
                 <x-alert type="error" :message="session('error')" />
             @endif
             @if ($errors->any())
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-                    @foreach ($errors->all() as $error)
-                        <x-alert type="error" :message="$error" />
-                    @endforeach
-                </div>
+                @foreach ($errors->all() as $error)
+                    <x-alert type="error" :message="$error" />
+                @endforeach
             @endif
         </div>
     @endif

@@ -41,10 +41,10 @@ class Room extends Model
     /**
      * Check if this room has a booking conflict with the given time range.
      */
-    public function hasConflict(string $startTime, string $endTime, ?int $excludeBookingId = null): bool
+    public function hasConflict(string $startTime, string $endTime, ?int $excludeBookingId = null, array $statuses = ['pending', 'approved']): bool
     {
         $query = $this->bookings()
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', $statuses)
             ->where('start_time', '<', $endTime)
             ->where('end_time', '>', $startTime);
 

@@ -26,7 +26,7 @@
         @endif
 
         <!-- Suggested Alternatives -->
-        @if(session('suggestions') && session('suggestions')->isNotEmpty())
+        @if(session('suggestions') && collect(session('suggestions'))->isNotEmpty())
             <div class="mb-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
                 <div class="flex items-center gap-2 mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

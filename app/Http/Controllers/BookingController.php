@@ -71,10 +71,13 @@ class BookingController extends Controller
         $room = Room::findOrFail($validated['room_id']);
 
         // Check for booking conflicts on this room
-        if ($room->hasConflict($startDateTime, $endDateTime)) {
+        $hasApprovedConflict = $room->hasConflict($startDateTime, $endDateTime, null, ['approved']);
+        $hasPendingConflict  = $room->hasConflict($startDateTime, $endDateTime, null, ['pending']);
+
+        if ($hasApprovedConflict) {
             $suggestions = $this->suggestAlternatives($startDateTime, $endDateTime, $room->capacity);
             return back()->withInput()->withErrors([
-                'room_id' => 'This room is already booked (pending or approved) for the selected time slot. Please see suggested alternatives below or choose a different time.',
+                'room_id' => 'This room is already booked and approved for the selected time slot. Please see suggested alternatives below or choose a different time.',
             ])->with('suggestions', $suggestions);
         }
 
@@ -86,6 +89,12 @@ class BookingController extends Controller
             'purpose'    => $validated['purpose'] ?? null,
             'status'     => 'pending',
         ]);
+
+        if ($hasPendingConflict) {
+            return redirect()->route('dashboard')
+                ->with('success', 'Your booking request has been submitted!')
+                ->with('warning', 'Please note that there is another pending request for this room at the same time. The admin will review all requests.');
+        }
 
         return redirect()->route('dashboard')
             ->with('success', 'Your booking request has been submitted! Please wait for admin approval.');
