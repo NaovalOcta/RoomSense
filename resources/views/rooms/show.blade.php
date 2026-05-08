@@ -59,8 +59,16 @@
             @if($room->images && count($room->images) > 0)
                 <div class="space-y-4">
                     <!-- Main Image -->
-                    <div class="w-full h-64 md:h-96 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden relative">
+                    <div id="main-image-container" class="w-full h-64 md:h-96 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden relative cursor-zoom-in group/main shadow-lg">
                         <img id="main-room-image" src="{{ Storage::url($room->images[0]) }}" alt="{{ $room->name }}" class="w-full h-full object-cover transition-opacity duration-300">
+                        <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/main:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <span class="flex items-center gap-2 bg-slate-900/80 border border-slate-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm transform translate-y-2 group-hover/main:translate-y-0 transition-all duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                                </svg>
+                                View Fullscreen
+                            </span>
+                        </div>
                     </div>
                     <!-- Thumbnails -->
                     @if(count($room->images) > 1)
@@ -69,7 +77,7 @@
                                 <button type="button" 
                                         onmouseover="document.getElementById('main-room-image').src='{{ Storage::url($img) }}'"
                                         onclick="document.getElementById('main-room-image').src='{{ Storage::url($img) }}'"
-                                        class="flex-shrink-0 w-32 h-24 md:w-40 md:h-28 rounded-xl overflow-hidden border border-slate-700/50 snap-start hover:border-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        class="thumbnail-btn flex-shrink-0 w-32 h-24 md:w-40 md:h-28 rounded-xl overflow-hidden border border-slate-700/50 snap-start hover:border-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <img src="{{ Storage::url($img) }}" alt="{{ $room->name }} view" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                                 </button>
                             @endforeach
@@ -163,5 +171,143 @@
             </div>
         </div>
     </div>
+
+    <!-- Fullscreen Image Modal Overlay -->
+    @if($room->images && count($room->images) > 0)
+        <div id="fullscreen-modal" class="fixed inset-0 z-[100] hidden bg-slate-950/95 backdrop-blur-md flex-col items-center justify-center p-4 transition-all duration-300">
+            <!-- Close button -->
+            <button id="close-modal" type="button" class="absolute top-6 right-6 text-slate-400 hover:text-white p-2.5 bg-slate-800/80 hover:bg-slate-800 rounded-full border border-slate-700/50 transition-colors focus:outline-none z-50 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <!-- Modal Content Wrapper -->
+            <div class="relative w-full max-w-5xl max-h-[85vh] flex items-center justify-center">
+                <!-- Image -->
+                <img id="modal-image" src="" alt="Fullscreen view" class="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-slate-800/80">
+                
+                <!-- Navigation arrows (if multiple images) -->
+                @if(count($room->images) > 1)
+                    <button id="prev-modal-image" type="button" class="absolute left-4 md:-left-20 text-slate-400 hover:text-white p-3.5 bg-slate-800/80 hover:bg-slate-700 rounded-full border border-slate-700/50 transition-all focus:outline-none shadow-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button id="next-modal-image" type="button" class="absolute right-4 md:-right-20 text-slate-400 hover:text-white p-3.5 bg-slate-800/80 hover:bg-slate-700 rounded-full border border-slate-700/50 transition-all focus:outline-none shadow-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                @endif
+            </div>
+            
+            <!-- Caption / Pagination Counter -->
+            <div class="mt-6 text-center text-slate-400 text-sm font-medium bg-slate-900/60 border border-slate-800 px-4 py-1.5 rounded-full backdrop-blur-sm">
+                <span id="modal-caption-index" class="text-white font-bold">1</span> <span class="text-slate-600">/</span> {{ count($room->images) }}
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const images = @json(array_map(fn($img) => Storage::url($img), $room->images));
+                let currentIdx = 0;
+
+                const mainImageContainer = document.getElementById('main-image-container');
+                const mainRoomImage = document.getElementById('main-room-image');
+                const fullscreenModal = document.getElementById('fullscreen-modal');
+                const modalImage = document.getElementById('modal-image');
+                const closeModal = document.getElementById('close-modal');
+                const prevBtn = document.getElementById('prev-modal-image');
+                const nextBtn = document.getElementById('next-modal-image');
+                const captionIdx = document.getElementById('modal-caption-index');
+
+                // Sync thumbnail selections with currentIdx
+                const thumbnailButtons = document.querySelectorAll('.thumbnail-btn');
+                thumbnailButtons.forEach((btn, index) => {
+                    btn.addEventListener('mouseover', () => {
+                        currentIdx = index;
+                    });
+                    btn.addEventListener('click', () => {
+                        currentIdx = index;
+                    });
+                });
+
+                if (mainImageContainer) {
+                    mainImageContainer.addEventListener('click', () => {
+                        openFullscreen();
+                    });
+                }
+
+                function openFullscreen() {
+                    if (images.length === 0) return;
+                    updateModalImage();
+                    fullscreenModal.classList.remove('hidden');
+                    fullscreenModal.classList.add('flex');
+                    document.body.classList.add('overflow-hidden');
+                }
+
+                function closeFullscreen() {
+                    fullscreenModal.classList.add('hidden');
+                    fullscreenModal.classList.remove('flex');
+                    document.body.classList.remove('overflow-hidden');
+                }
+
+                function updateModalImage() {
+                    modalImage.classList.add('opacity-0');
+                    setTimeout(() => {
+                        modalImage.src = images[currentIdx];
+                        modalImage.classList.remove('opacity-0');
+                        modalImage.classList.add('transition-opacity', 'duration-300');
+                    }, 100);
+
+                    if (captionIdx) {
+                        captionIdx.textContent = currentIdx + 1;
+                    }
+                    if (mainRoomImage) {
+                        mainRoomImage.src = images[currentIdx];
+                    }
+                }
+
+                if (closeModal) {
+                    closeModal.addEventListener('click', closeFullscreen);
+                }
+
+                if (fullscreenModal) {
+                    fullscreenModal.addEventListener('click', (e) => {
+                        if (e.target === fullscreenModal) {
+                            closeFullscreen();
+                        }
+                    });
+                }
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (!fullscreenModal.classList.contains('hidden')) {
+                        if (e.key === 'Escape') {
+                            closeFullscreen();
+                        } else if (e.key === 'ArrowLeft' && images.length > 1) {
+                            prevImage();
+                        } else if (e.key === 'ArrowRight' && images.length > 1) {
+                            nextImage();
+                        }
+                    }
+                });
+
+                function prevImage() {
+                    currentIdx = (currentIdx - 1 + images.length) % images.length;
+                    updateModalImage();
+                }
+
+                function nextImage() {
+                    currentIdx = (currentIdx + 1) % images.length;
+                    updateModalImage();
+                }
+
+                if (prevBtn) prevBtn.addEventListener('click', prevImage);
+                if (nextBtn) nextBtn.addEventListener('click', nextImage);
+            });
+        </script>
+    @endif
 
 @endsection
