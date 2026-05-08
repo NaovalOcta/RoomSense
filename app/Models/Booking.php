@@ -10,6 +10,11 @@ class Booking extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING   = 'pending';
+    public const STATUS_APPROVED  = 'approved';
+    public const STATUS_REJECTED  = 'rejected';
+    public const STATUS_CANCELLED = 'cancelled';
+
     protected $fillable = [
         'user_id',
         'room_id',
@@ -18,13 +23,22 @@ class Booking extends Model
         'purpose',
         'status',
         'notes',
+        'reminder_24h_sent',
+        'reminder_2h_sent',
+        'post_booking_sent',
+        'cancelled_by',
+        'cancelled_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'start_time' => 'datetime',
-            'end_time'   => 'datetime',
+            'start_time'        => 'datetime',
+            'end_time'          => 'datetime',
+            'reminder_24h_sent' => 'boolean',
+            'reminder_2h_sent'  => 'boolean',
+            'post_booking_sent' => 'boolean',
+            'cancelled_at'      => 'datetime',
         ];
     }
 
@@ -45,6 +59,14 @@ class Booking extends Model
     }
 
     /**
+     * The user who cancelled this booking.
+     */
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /**
      * Scope to filter by status.
      */
     public function scopeStatus($query, string $status)
@@ -57,7 +79,7 @@ class Booking extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', self::STATUS_PENDING);
     }
 
     /**
@@ -65,7 +87,7 @@ class Booking extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', self::STATUS_APPROVED);
     }
 
     /**
@@ -73,7 +95,7 @@ class Booking extends Model
      */
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === self::STATUS_PENDING;
     }
 
     /**
@@ -81,7 +103,7 @@ class Booking extends Model
      */
     public function isApproved(): bool
     {
-        return $this->status === 'approved';
+        return $this->status === self::STATUS_APPROVED;
     }
 
     /**
@@ -89,6 +111,22 @@ class Booking extends Model
      */
     public function isRejected(): bool
     {
-        return $this->status === 'rejected';
+        return $this->status === self::STATUS_REJECTED;
+    }
+
+    /**
+     * Check if booking is cancelled.
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /**
+     * Check if booking was cancelled by an admin.
+     */
+    public function cancelledByAdmin(): bool
+    {
+        return $this->isCancelled() && $this->cancelledBy?->is_admin === true;
     }
 }
