@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Notifications\BookingApprovedNotification;
+use App\Notifications\BookingRejectedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,9 +25,9 @@ class BookingController extends Controller
         }
 
         $bookings       = $query->paginate(15)->withQueryString();
-        $pendingCount   = Booking::where('status', 'pending')->count();
-        $approvedCount  = Booking::where('status', 'approved')->count();
-        $rejectedCount  = Booking::where('status', 'rejected')->count();
+        $pendingCount   = Booking::where('status', Booking::STATUS_PENDING)->count();
+        $approvedCount  = Booking::where('status', Booking::STATUS_APPROVED)->count();
+        $rejectedCount  = Booking::where('status', Booking::STATUS_REJECTED)->count();
 
         return view('admin.bookings.index', compact(
             'bookings', 'status', 'pendingCount', 'approvedCount', 'rejectedCount'
@@ -43,10 +45,10 @@ class BookingController extends Controller
         ]);
 
         // Extra conflict check when approving: ensure no other approved booking exists
-        if ($validated['status'] === 'approved') {
+        if ($validated['status'] === Booking::STATUS_APPROVED) {
             $conflict = Booking::where('room_id', $booking->room_id)
                 ->where('id', '!=', $booking->id)
-                ->where('status', 'approved')
+                ->where('status', Booking::STATUS_APPROVED)
                 ->where('start_time', '<', $booking->end_time)
                 ->where('end_time', '>', $booking->start_time)
                 ->exists();
@@ -61,7 +63,17 @@ class BookingController extends Controller
             'notes'  => $validated['notes'] ?? null,
         ]);
 
-        $action = $validated['status'] === 'approved' ? 'approved' : 'rejected';
+        // Refresh model to get latest status
+        $booking->refresh();
+
+        // Dispatch notification based on NEW status (use constants)
+        if ($booking->status === Booking::STATUS_APPROVED) {
+            $booking->user->notify(new BookingApprovedNotification($booking));
+        } elseif ($booking->status === Booking::STATUS_REJECTED) {
+            $booking->user->notify(new BookingRejectedNotification($booking));
+        }
+
+        $action = $validated['status'] === Booking::STATUS_APPROVED ? 'approved' : 'rejected';
 
         return back()->with('success', "Booking #{$booking->id} has been {$action} successfully.");
     }

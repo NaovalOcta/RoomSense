@@ -3,23 +3,42 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\VerificationController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GUEST ROUTES — Login
+// GUEST ROUTES — Login & Register
 // ─────────────────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
     Route::get('/login', [AuthController::class, 'showLoginForm']);
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AUTHENTICATED USER ROUTES
+// EMAIL VERIFICATION ROUTES — Auth, but not yet verified
 // ─────────────────────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    Route::get('/email/verify', [VerificationController::class, 'notice'])
+        ->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+        ->middleware(['signed'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', [VerificationController::class, 'resend'])
+        ->middleware(['throttle:6,1'])
+        ->name('verification.send');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTHENTICATED & VERIFIED USER ROUTES
+// ─────────────────────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard — My Bookings
     Route::get('/dashboard', [BookingController::class, 'index'])->name('dashboard');
 
@@ -31,6 +50,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/book', [BookingController::class, 'create'])->name('bookings.create');
     Route::post('/book', [BookingController::class, 'store'])->name('bookings.store');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+
+    // In-App Notifications
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::patch('{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+        Route::patch('read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::get('unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('unread-count');
+    });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

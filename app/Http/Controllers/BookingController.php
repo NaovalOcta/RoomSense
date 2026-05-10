@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\User;
+use App\Notifications\BookingSubmittedNotification;
+use App\Notifications\AdminNewBookingNotification;
+use App\Notifications\BookingCancelledNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,8 +75,8 @@ class BookingController extends Controller
         $room = Room::findOrFail($validated['room_id']);
 
         // Check for booking conflicts on this room
-        $hasApprovedConflict = $room->hasConflict($startDateTime, $endDateTime, null, ['approved']);
-        $hasPendingConflict  = $room->hasConflict($startDateTime, $endDateTime, null, ['pending']);
+        $hasApprovedConflict = $room->hasConflict($startDateTime, $endDateTime, null, [Booking::STATUS_APPROVED]);
+        $hasPendingConflict  = $room->hasConflict($startDateTime, $endDateTime, null, [Booking::STATUS_PENDING]);
 
         if ($hasApprovedConflict) {
             $suggestions = $this->suggestAlternatives($startDateTime, $endDateTime, $room->capacity);
@@ -81,14 +85,22 @@ class BookingController extends Controller
             ])->with('suggestions', $suggestions);
         }
 
-        Booking::create([
+        $booking = Booking::create([
             'user_id'    => Auth::id(),
             'room_id'    => $room->id,
             'start_time' => $startDateTime,
             'end_time'   => $endDateTime,
             'purpose'    => $validated['purpose'] ?? null,
-            'status'     => 'pending',
+            'status'     => Booking::STATUS_PENDING,
         ]);
+
+        // Dispatch notification to USER (In-App + Email)
+        $booking->user->notify(new BookingSubmittedNotification($booking));
+
+        // Dispatch notification to ALL ADMINS (In-App ONLY, batch strategy)
+        User::where('is_admin', true)->each(function (User $admin) use ($booking) {
+            $admin->notify(new AdminNewBookingNotification($booking));
+        });
 
         if ($hasPendingConflict) {
             return redirect()->route('dashboard')
@@ -114,7 +126,15 @@ class BookingController extends Controller
             return back()->with('error', 'Only pending bookings can be cancelled.');
         }
 
-        $booking->delete();
+        // Send cancellation notification BEFORE updating status
+        $booking->user->notify(new BookingCancelledNotification($booking));
+
+        // Soft-cancel with audit fields
+        $booking->update([
+            'status'       => Booking::STATUS_CANCELLED,
+            'cancelled_by' => Auth::id(),
+            'cancelled_at' => now(),
+        ]);
 
         return back()->with('success', 'Your booking has been cancelled.');
     }
