@@ -37,7 +37,7 @@ class SendBookingReminderJob implements ShouldQueue
             ->where('start_time', '>', $now->copy()->addHours(23))
             ->cursor() // Process one record at a time to be memory-efficient
             ->each(function (Booking $booking) {
-                $booking->user->notify(new BookingReminderNotification($booking, 'H-24'));
+                $booking->user->notifyNow(new BookingReminderNotification($booking, 'H-24'));
                 // Update flag LANGSUNG setelah dispatch — idempotent & aman jika worker crash
                 $booking->update(['reminder_24h_sent' => true]);
             });
@@ -49,7 +49,7 @@ class SendBookingReminderJob implements ShouldQueue
             ->where('start_time', '>', $now->copy()->addMinutes(90))
             ->cursor()
             ->each(function (Booking $booking) {
-                $booking->user->notify(new BookingReminderNotification($booking, 'H-2'));
+                $booking->user->notifyNow(new BookingReminderNotification($booking, 'H-2'));
                 $booking->update(['reminder_2h_sent' => true]);
             });
     }

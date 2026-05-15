@@ -37,7 +37,7 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
         return [
             'title' => '📋 New Booking Request',
             'message' => "{$this->booking->user->name} booked {$this->booking->room->name} on {$this->booking->start_time->format('d M Y')}.",
-            'action_url' => route('admin.bookings.index'),
+            'action_url' => route('admin.bookings.index', [], false),
             'icon' => '🔔',
             'created_at' => now()->toISOString(),
         ];

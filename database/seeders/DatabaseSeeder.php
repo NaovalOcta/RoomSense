@@ -24,11 +24,15 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // --- Create Regular Users ---
+        $demoEmail = config('app.demo_user_email');
+
         $user1 = User::create([
-            'name'     => 'Alice Johnson',
-            'email'    => 'alice@roomsense.com',
-            'password' => Hash::make('password'),
-            'is_admin' => false,
+            'name'              => 'Dosen Penguji (Demo)',
+            'email'             => $demoEmail,
+            'password'          => Hash::make('password'),
+            'is_admin'          => false,
+            'is_demo'           => true,
+            'email_verified_at' => now(),
         ]);
 
         $user2 = User::create([

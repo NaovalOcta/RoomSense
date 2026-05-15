@@ -10,12 +10,12 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    base: "https://heritage-debut-wondering-cleveland.trycloudflare.com/",
+    base: "http://127.0.0.1:8000/",
     server: {
         host: "0.0.0.0",
         hmr: {
-            host: "https://heritage-debut-wondering-cleveland.trycloudflare.com/",
-            protocol: "wss",
+            host: "http://127.0.0.1:8000/",
+            protocol: "ws",
         },
         watch: {
             ignored: ["**/storage/framework/views/**"],

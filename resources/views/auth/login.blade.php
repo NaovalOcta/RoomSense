@@ -144,6 +144,12 @@
                     </div>
                 @endif
 
+                @if (session('warning'))
+                    <div class="mb-5 p-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300" role="alert">
+                        {{ session('warning') }}
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('login.post') }}" class="space-y-5">
                     @csrf
 
@@ -169,7 +175,7 @@
                                 class="input-field w-full rounded-xl border bg-slate-900/60 pl-10 pr-4 py-3 text-sm text-white
                                        placeholder:text-slate-500 outline-none
                                        {{ $errors->has('email') ? 'border-red-500 focus:border-red-400' : 'border-slate-700 focus:border-blue-500' }}"
-                                placeholder="nama@webmail.umm.ac.id"
+                                placeholder="{{ config('app.demo_user_email') }}"
                             >
                         </div>
                     </div>
@@ -247,10 +253,10 @@
                             <p class="text-blue-400/60 text-xs mt-0.5">Klik untuk isi otomatis</p>
                         </button>
                         <button type="button"
-                                onclick="fillCredentials('alice@roomsense.com', 'password')"
+                                onclick="fillCredentials('{{ config('app.demo_user_email') }}', 'password')"
                                 class="bg-slate-900/60 hover:bg-slate-900 rounded-lg p-3 text-left transition-colors border border-slate-700/50 hover:border-slate-600">
                             <p class="font-semibold text-slate-300 mb-1">Pengguna</p>
-                            <p class="text-slate-500 truncate">alice@roomsense.com</p>
+                            <p class="text-slate-500 truncate">{{ config('app.demo_user_email') }}</p>
                             <p class="text-blue-400/60 text-xs mt-0.5">Klik untuk isi otomatis</p>
                         </button>
                     </div>

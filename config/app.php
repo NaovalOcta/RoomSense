@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'demo_user_email' => env('DEMO_USER_EMAIL', 'user@webmail.umm.demo'),
     'asset_url' => env('ASSET_URL', null),
 
     /*

@@ -57,7 +57,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
         return [
             'title' => 'Booking Approved',
             'message' => "Booking #{$this->booking->id} for {$this->booking->room->name} has been APPROVED.",
-            'action_url' => route('dashboard'),
+            'action_url' => route('dashboard', [], false),
             'icon' => '✅',
             'created_at' => now()->toISOString(),
         ];

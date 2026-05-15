@@ -75,10 +75,10 @@
     </div>
 
     {{-- ── Filter Tabs ── --}}
-    <div class="flex items-center gap-1.5 mb-6 p-1 bg-slate-800/50 border border-slate-700/50 rounded-xl w-fit">
+    <div class="flex items-center gap-1.5 mb-6 p-1 bg-slate-800/50 border border-slate-700/50 rounded-xl w-full sm:w-fit overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         @foreach(['all' => 'Semua', 'pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'] as $key => $label)
             <a href="{{ route('admin.bookings.index', ['status' => $key]) }}"
-               class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150
+               class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 whitespace-nowrap flex-shrink-0
                       {{ $status === $key
                           ? 'bg-slate-700 text-white shadow-sm'
                           : 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50' }}">

@@ -16,10 +16,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Alpine.js (loaded AFTER Vite bundle so window.Echo exists when Alpine initialises) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -69,7 +69,7 @@
 <body class="flex flex-col min-h-screen bg-slate-950 bg-grid text-white">
 
     <!-- ── Navigation Bar ── -->
-    <nav class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+    <nav x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between gap-4">
 
@@ -150,8 +150,8 @@
                             @endif
                         </div>
 
-                        <!-- Logout -->
-                        <form action="{{ route('logout') }}" method="POST">
+                        <!-- Logout (Desktop) -->
+                        <form action="{{ route('logout') }}" method="POST" class="hidden md:block">
                             @csrf
                             <button type="submit"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-800 hover:border-slate-700">
@@ -161,6 +161,18 @@
                                 <span class="hidden sm:inline">Keluar</span>
                             </button>
                         </form>
+
+                        <!-- Hamburger Button (Mobile) -->
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" 
+                                aria-label="Open main menu"
+                                class="md:hidden inline-flex items-center justify-center p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none">
+                            <svg x-show="!mobileMenuOpen" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <svg x-show="mobileMenuOpen" style="display:none;" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     @else
                         <a href="{{ route('login') }}"
                             class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-800 hover:border-slate-700">
@@ -175,6 +187,64 @@
 
             </div>
         </div>
+
+        <!-- ── Mobile Menu Panel ── -->
+        @auth
+        <div x-show="mobileMenuOpen" 
+             style="display: none;" 
+             x-transition:enter="transition ease-out duration-100" 
+             x-transition:enter-start="opacity-0 -translate-y-2" 
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="md:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md">
+            <div class="px-4 py-3 space-y-1.5">
+                @if (auth()->user()->is_admin)
+                    <a href="{{ route('admin.bookings.index') }}"
+                        class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('admin.bookings.*')
+                                  ? 'bg-blue-600/15 text-blue-300 ring-1 ring-blue-500/20'
+                                  : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                        Booking Approvals
+                    </a>
+                    <a href="{{ route('admin.rooms.index') }}"
+                        class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('admin.rooms.*')
+                                  ? 'bg-blue-600/15 text-blue-300 ring-1 ring-blue-500/20'
+                                  : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                        Manage Rooms
+                    </a>
+                @else
+                    <a href="{{ route('dashboard') }}"
+                        class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('dashboard')
+                                  ? 'bg-blue-600/15 text-blue-300 ring-1 ring-blue-500/20'
+                                  : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                        My Bookings
+                    </a>
+                    <a href="{{ route('rooms.index') }}"
+                        class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                              {{ request()->routeIs('rooms.*')
+                                  ? 'bg-blue-600/15 text-blue-300 ring-1 ring-blue-500/20'
+                                  : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                        Browse Rooms
+                    </a>
+                @endif
+
+                <!-- Logout for Mobile -->
+                <div class="border-t border-slate-800/80 pt-2.5 mt-2.5">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                            class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-left">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Keluar Akun
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endauth
     </nav>
 
     <!-- ── Flash Alerts ── -->

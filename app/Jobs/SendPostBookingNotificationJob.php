@@ -36,7 +36,7 @@ class SendPostBookingNotificationJob implements ShouldQueue
             ->where('end_time', '>', $now->copy()->subHours(2))      // belum lewat 2 jam
             ->cursor()
             ->each(function (Booking $booking) {
-                $booking->user->notify(new BookingCompletedNotification($booking));
+                $booking->user->notifyNow(new BookingCompletedNotification($booking));
                 $booking->update(['post_booking_sent' => true]);
             });
     }

@@ -40,6 +40,11 @@ class AuthController extends Controller
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
+            
+            if ($user->is_demo) {
+                session()->flash('warning', '⚠️ Akun Demo Publik: Jangan gunakan untuk data sensitif. Data booking dapat di-reset sewaktu-waktu. Notifikasi email tidak terkirim (log only).');
+            }
+
             $intendedRoute = $user->isAdmin() ? route('admin.bookings.index') : route('dashboard');
 
             return redirect()->intended($intendedRoute);

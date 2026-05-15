@@ -52,7 +52,7 @@ class BookingSubmittedNotification extends Notification implements ShouldQueue
         return [
             'title' => 'Booking Submitted',
             'message' => "Booking #{$this->booking->id} for {$this->booking->room->name} is pending approval.",
-            'action_url' => route('dashboard'),
+            'action_url' => route('dashboard', [], false),
             'icon' => '⏳',
             'created_at' => now()->toISOString(),
         ];

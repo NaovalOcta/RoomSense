@@ -94,12 +94,19 @@ class BookingController extends Controller
             'status'     => Booking::STATUS_PENDING,
         ]);
 
-        // Dispatch notification to USER (In-App + Email)
-        $booking->user->notify(new BookingSubmittedNotification($booking));
+        // Dispatch notification to USER (In-App + Email) — notifyNow() bypasses queue
+        $booking->user->notifyNow(new BookingSubmittedNotification($booking));
 
         // Dispatch notification to ALL ADMINS (In-App ONLY, batch strategy)
         User::where('is_admin', true)->each(function (User $admin) use ($booking) {
-            $admin->notify(new AdminNewBookingNotification($booking));
+            $admin->notifyNow(new AdminNewBookingNotification($booking));
+
+            event(new \App\Events\RealtimeNotificationEvent(
+                user: $admin,
+                title: '📋 New Booking Request',
+                message: "{$booking->user->name} booked {$booking->room->name}.",
+                actionUrl: route('admin.bookings.index', [], false)
+            ));
         });
 
         if ($hasPendingConflict) {
@@ -126,8 +133,8 @@ class BookingController extends Controller
             return back()->with('error', 'Only pending bookings can be cancelled.');
         }
 
-        // Send cancellation notification BEFORE updating status
-        $booking->user->notify(new BookingCancelledNotification($booking));
+        // Send cancellation notification BEFORE updating status — notifyNow() bypasses queue
+        $booking->user->notifyNow(new BookingCancelledNotification($booking));
 
         // Soft-cancel with audit fields
         $booking->update([

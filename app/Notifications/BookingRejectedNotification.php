@@ -53,7 +53,7 @@ class BookingRejectedNotification extends Notification implements ShouldQueue
         return [
             'title' => 'Booking Rejected',
             'message' => "Booking #{$this->booking->id} was rejected. Reason: {$reason}",
-            'action_url' => route('rooms.index'),
+            'action_url' => route('rooms.index', [], false),
             'icon' => '❌',
             'created_at' => now()->toISOString(),
         ];

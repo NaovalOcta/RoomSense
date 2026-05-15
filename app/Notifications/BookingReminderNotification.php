@@ -60,7 +60,7 @@ class BookingReminderNotification extends Notification implements ShouldQueue
             'message' => $this->type === 'H-24'
                 ? "Booking {$this->booking->room->name} starts tomorrow at {$this->booking->start_time->timezone('Asia/Jakarta')->format('H:i')} WIB"
                 : "Booking {$this->booking->room->name} starts in 2 hours!",
-            'action_url' => route('dashboard'),
+            'action_url' => route('dashboard', [], false),
             'icon' => $this->type === 'H-24' ? '⏰' : '🔔',
             'created_at' => now()->toISOString(),
         ];

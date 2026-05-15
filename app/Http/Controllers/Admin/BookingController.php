@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\RealtimeNotificationEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Notifications\BookingApprovedNotification;
@@ -66,11 +67,27 @@ class BookingController extends Controller
         // Refresh model to get latest status
         $booking->refresh();
 
-        // Dispatch notification based on NEW status (use constants)
+        // Dispatch in-app notification AND WebSocket event to the user
         if ($booking->status === Booking::STATUS_APPROVED) {
-            $booking->user->notify(new BookingApprovedNotification($booking));
+            $booking->user->notifyNow(new BookingApprovedNotification($booking));
+
+            event(new RealtimeNotificationEvent(
+                user: $booking->user,
+                title: '✅ Booking Approved',
+                message: "Booking #{$booking->id} for {$booking->room->name} has been APPROVED.",
+                actionUrl: route('dashboard', [], false),
+                icon: '✅'
+            ));
         } elseif ($booking->status === Booking::STATUS_REJECTED) {
-            $booking->user->notify(new BookingRejectedNotification($booking));
+            $booking->user->notifyNow(new BookingRejectedNotification($booking));
+
+            event(new RealtimeNotificationEvent(
+                user: $booking->user,
+                title: '❌ Booking Rejected',
+                message: "Booking #{$booking->id} for {$booking->room->name} was rejected.",
+                actionUrl: route('rooms.index', [], false),
+                icon: '❌'
+            ));
         }
 
         $action = $validated['status'] === Booking::STATUS_APPROVED ? 'approved' : 'rejected';

@@ -18,11 +18,11 @@
             <p class="mt-1 text-sm text-slate-400">Kelola dan pantau status peminjaman ruangan Anda.</p>
         </div>
         <a href="{{ route('bookings.create') }}"
-           class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500
+           class="inline-flex justify-center w-full sm:w-auto items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500
                   hover:from-blue-500 hover:to-blue-400 px-5 py-2.5
                   text-sm font-semibold text-white transition-all duration-200
                   shadow-lg shadow-blue-600/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0
-                  self-start sm:self-auto flex-shrink-0">
+                  flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -122,7 +122,8 @@
                 </p>
             </div>
 
-            <div class="overflow-x-auto">
+            {{-- Desktop View (Table) --}}
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-700/40">
@@ -137,7 +138,6 @@
                     <tbody class="divide-y divide-slate-700/30">
                         @foreach($bookings as $booking)
                             <tr class="group hover:bg-slate-700/20 transition-all duration-150 {{ $booking->isPending() ? 'bg-amber-500/[0.03]' : '' }}">
-
                                 {{-- Room --}}
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
@@ -212,6 +212,88 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Mobile View (Card List) --}}
+            <div class="md:hidden divide-y divide-slate-700/30">
+                @foreach($bookings as $booking)
+                    <div class="p-4 flex flex-col gap-3.5 transition-colors {{ $booking->isPending() ? 'bg-amber-500/[0.03]' : '' }}">
+                        {{-- Card Header: Room & Status --}}
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex gap-3">
+                                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-700/60 border border-slate-600/30 flex-shrink-0">
+                                    <svg class="h-4.5 w-4.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white text-base">{{ $booking->room->name }}</h4>
+                                    @if($booking->room->building)
+                                        <p class="text-xs text-slate-400 font-medium mt-0.5">{{ $booking->room->building }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <x-badge :status="$booking->status" />
+                            </div>
+                        </div>
+
+                        {{-- Card Details: Time & Purpose --}}
+                        <div class="space-y-2">
+                            {{-- Date & Time --}}
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <div class="flex items-center gap-1.5 px-2 py-1 bg-slate-800 border border-slate-700/50 rounded-lg text-slate-300">
+                                    <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5"/>
+                                    </svg>
+                                    {{ $booking->start_time->format('D, j M Y') }}
+                                </div>
+                                <div class="flex items-center gap-1.5 px-2 py-1 bg-slate-800 border border-slate-700/50 rounded-lg text-slate-300">
+                                    <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    {{ $booking->start_time->format('g:i A') }} – {{ $booking->end_time->format('g:i A') }}
+                                </div>
+                            </div>
+                            
+                            {{-- Purpose --}}
+                            @if($booking->purpose)
+                                <div class="text-xs text-slate-400 flex items-start gap-2 bg-slate-800/30 p-2 rounded-lg">
+                                    <span class="font-medium text-slate-500 select-none">Keperluan:</span>
+                                    <span class="text-slate-300 font-light">{{ $booking->purpose }}</span>
+                                </div>
+                            @endif
+
+                            {{-- Admin Notes --}}
+                            @if($booking->notes)
+                                <div class="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
+                                    <span class="font-bold block mb-0.5">Catatan:</span>
+                                    {{ $booking->notes }}
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Card Action --}}
+                        @if($booking->isPending())
+                            <div class="border-t border-slate-700/30 pt-3 mt-1">
+                                <form id="cancel-form-mobile-{{ $booking->id }}"
+                                      action="{{ route('bookings.destroy', $booking) }}"
+                                      method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            data-confirm="Cancel this booking request? This action cannot be undone."
+                                            class="w-full flex items-center justify-center gap-2 text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl py-2 transition-all">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                        Batalkan Permintaan
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
             </div>
 
             @if($bookings->hasPages())

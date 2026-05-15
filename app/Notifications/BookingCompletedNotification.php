@@ -50,7 +50,7 @@ class BookingCompletedNotification extends Notification implements ShouldQueue
         return [
             'title' => 'Booking Completed',
             'message' => "Thank you! Your booking of {$this->booking->room->name} on {$this->booking->start_time->timezone('Asia/Jakarta')->format('d M')} has ended.",
-            'action_url' => route('rooms.index'),
+            'action_url' => route('rooms.index', [], false),
             'icon' => '🎉',
             'created_at' => now()->toISOString(),
         ];

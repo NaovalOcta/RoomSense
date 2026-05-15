@@ -168,3 +168,16 @@
 | Waktu salah timezone | Konversi dilakukan di luar Blade | Pastikan `->timezone('Asia/Jakarta')` hanya digunakan di Blade/View, bukan Model atau Controller |
 | `abort(403)` saat mark-as-read | User coba akses notifikasi milik orang lain | Guard sudah benar — ini perilaku yang diharapkan |
 | `STATUS_CANCELLED` typo error | Nama constant salah | Gunakan `Booking::STATUS_CANCELLED` (bukan `CANCELED` tanpa huruf L) |
+
+---
+
+## 🎭 Demo Account
+- Email: `user@webmail.umm.demo` (atau sesuai `DEMO_USER_EMAIL` di `.env`)
+- Password: `password`
+- Catatan: Akun pre-verified, tidak menerima email sungguhan. Gunakan `MAIL_MAILER=log` dan `QUEUE_CONNECTION=sync` di `.env` untuk demo.
+- Checklist:
+  - [ ] Login demo sukses tanpa verifikasi email
+  - [ ] Flash message warning muncul di dashboard
+  - [ ] Flow booking berjalan normal
+  - [ ] Notifikasi in-app (bell) berfungsi
+  - [ ] Tidak ada error mail di `storage/logs/laravel.log`

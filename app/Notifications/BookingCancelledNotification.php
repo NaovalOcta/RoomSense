@@ -50,7 +50,7 @@ class BookingCancelledNotification extends Notification implements ShouldQueue
         return [
             'title' => 'Booking Cancelled',
             'message' => "Booking #{$this->booking->id} for {$this->booking->room->name} has been cancelled.",
-            'action_url' => route('rooms.index'),
+            'action_url' => route('rooms.index', [], false),
             'icon' => '🚫',
             'created_at' => now()->toISOString(),
         ];
