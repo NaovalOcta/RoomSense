@@ -247,6 +247,38 @@
         @endauth
     </nav>
 
+    {{-- ── Admin: Sticky Accumulator Bar (hidden by default, shown via JS when new booking arrives) ── --}}
+    @auth
+        @if(auth()->user()->is_admin)
+        <div id="admin-new-booking-bar"
+             data-count="0"
+             class="hidden sticky top-16 z-40 w-full border-b border-amber-500/40 bg-amber-950/90 backdrop-blur-md">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between gap-3 py-2.5">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="relative flex h-2.5 w-2.5 flex-shrink-0">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+                        </span>
+                        <p class="text-sm font-medium text-amber-200 truncate">
+                            <span id="admin-booking-bar-count" class="font-bold text-amber-300">0</span>
+                            new booking request arrived while you were working.
+                        </p>
+                    </div>
+                    <button
+                        onclick="window.location.reload()"
+                        class="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-amber-950 transition-colors cursor-pointer">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Review Now
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
+    @endauth
+
     <!-- ── Flash Alerts ── -->
     @if (session('success') || session('error') || session('warning') || $errors->any())
         <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-4 space-y-2">
@@ -287,6 +319,7 @@
         </div>
     </footer>
 
+    @stack('scripts')
 </body>
 
 </html>

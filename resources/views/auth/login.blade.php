@@ -68,6 +68,11 @@
         .btn-primary {
             position: relative;
             overflow: hidden;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
         }
         .btn-primary::after {
             content: '';
@@ -221,8 +226,7 @@
 
                     <!-- Submit -->
                     <button type="submit"
-                            class="btn-primary w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400
-                                   py-3 text-sm font-semibold text-white transition-all duration-200
+                            class="btn-primary w-full rounded-xl py-3 text-sm font-semibold text-white transition-all duration-200
                                    shadow-lg shadow-blue-600/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0">
                         Masuk ke Akun
                     </button>

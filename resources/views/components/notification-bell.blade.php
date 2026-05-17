@@ -57,12 +57,26 @@
                         created_at_wib: 'Baru saja'
                     });
 
-                    // Intelligent Auto-Refresh
-                    // Trigger page reload only if user is on the dashboard or booking index, and no action modal is currently open.
-                    const isViewingBookings = window.location.pathname.includes('/admin/bookings') || window.location.pathname.includes('/dashboard');
-                    const isModalOpen = document.querySelector('[id*=\'-modal-\']:not(.hidden)');
+                    // ─── ROLE-BASED BEHAVIOR ───
+                    // Detect admin by checking for the sticky bar element that only renders for admins.
+                    // Admin: Show sticky accumulator bar + update tab title. NO auto-reload.
+                    // User (mahasiswa): Auto-reload as before.
+                    const isAdmin = document.getElementById('admin-new-booking-bar') !== null;
 
-                    if (isViewingBookings && !isModalOpen) {
+                    if (isAdmin) {
+                        const bar = document.getElementById('admin-new-booking-bar');
+                        const counterEl = document.getElementById('admin-booking-bar-count');
+                        let currentCount = parseInt(bar.dataset.count || '0') + 1;
+                        bar.dataset.count = currentCount;
+                        counterEl.textContent = currentCount;
+                        bar.classList.remove('hidden');
+
+                        const titleEl = document.querySelector('title');
+                        if (!titleEl.dataset.baseTitle) {
+                            titleEl.dataset.baseTitle = document.title;
+                        }
+                        document.title = '(+' + currentCount + ') ' + titleEl.dataset.baseTitle;
+                    } else {
                         window.location.reload();
                     }
                 });

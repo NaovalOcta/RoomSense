@@ -101,7 +101,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 @foreach($room->images as $imagePath)
                     <div class="relative group aspect-video rounded-xl bg-slate-900 border border-slate-700 overflow-hidden">
-                        <img src="{{ Storage::url($imagePath) }}" alt="Room Image" class="w-full h-full object-cover">
+                        <img src="{{ $room->imageUrl($imagePath) }}" alt="Room Image" class="w-full h-full object-cover">
                         <!-- Delete Button Overlay -->
                         <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <button type="button" 

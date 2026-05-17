@@ -51,6 +51,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/book', [BookingController::class, 'store'])->name('bookings.store');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
+    // Reactive Panel API
+    Route::get('/api/rooms/{room}/details', [RoomController::class, 'apiDetails'])->name('api.rooms.details');
+    Route::get('/api/rooms/{room}/schedule', [RoomController::class, 'apiSchedule'])->name('api.rooms.schedule');
+
     // In-App Notifications
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('index');

@@ -60,7 +60,7 @@
                 <div class="space-y-4">
                     <!-- Main Image -->
                     <div id="main-image-container" class="w-full h-64 md:h-96 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700/50 overflow-hidden relative cursor-zoom-in group/main shadow-lg">
-                        <img id="main-room-image" src="{{ Storage::url($room->images[0]) }}" alt="{{ $room->name }}" class="w-full h-full object-cover transition-opacity duration-300">
+                        <img id="main-room-image" src="{{ $room->imageUrl($room->images[0]) }}" alt="{{ $room->name }}" class="w-full h-full object-cover transition-opacity duration-300">
                         <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/main:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                             <span class="flex items-center gap-2 bg-slate-900/80 border border-slate-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm transform translate-y-2 group-hover/main:translate-y-0 transition-all duration-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,10 +75,10 @@
                         <div class="flex gap-4 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                             @foreach($room->images as $img)
                                 <button type="button" 
-                                        onmouseover="document.getElementById('main-room-image').src='{{ Storage::url($img) }}'"
-                                        onclick="document.getElementById('main-room-image').src='{{ Storage::url($img) }}'"
+                                        onmouseover="document.getElementById('main-room-image').src='{{ $room->imageUrl($img) }}'"
+                                        onclick="document.getElementById('main-room-image').src='{{ $room->imageUrl($img) }}'"
                                         class="thumbnail-btn flex-shrink-0 w-32 h-24 md:w-40 md:h-28 rounded-xl overflow-hidden border border-slate-700/50 snap-start hover:border-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <img src="{{ Storage::url($img) }}" alt="{{ $room->name }} view" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                                    <img src="{{ $room->imageUrl($img) }}" alt="{{ $room->name }} view" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
                                 </button>
                             @endforeach
                         </div>
@@ -210,7 +210,7 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const images = @json(array_map(fn($img) => Storage::url($img), $room->images));
+                const images = @json(array_map(fn($img) => $room->imageUrl($img), $room->images));
                 let currentIdx = 0;
 
                 const mainImageContainer = document.getElementById('main-image-container');

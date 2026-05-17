@@ -79,4 +79,19 @@ class Room extends Model
 
         return 'available';
     }
+    /**
+     * Get the full URL for a given image path.
+     */
+    public function imageUrl(?string $image): string
+    {
+        if (!$image) {
+            return '';
+        }
+
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($image);
+    }
 }

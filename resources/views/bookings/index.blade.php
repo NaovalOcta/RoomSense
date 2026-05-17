@@ -18,8 +18,8 @@
             <p class="mt-1 text-sm text-slate-400">Kelola dan pantau status peminjaman ruangan Anda.</p>
         </div>
         <a href="{{ route('bookings.create') }}"
-           class="inline-flex justify-center w-full sm:w-auto items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500
-                  hover:from-blue-500 hover:to-blue-400 px-5 py-2.5
+           class="inline-flex justify-center w-full sm:w-auto items-center gap-2 rounded-xl bg-blue-600
+                  hover:bg-blue-500 px-5 py-2.5
                   text-sm font-semibold text-white transition-all duration-200
                   shadow-lg shadow-blue-600/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0
                   flex-shrink-0">
@@ -102,7 +102,7 @@
             <h3 class="text-lg font-semibold text-slate-200 mb-2">Belum ada peminjaman</h3>
             <p class="text-sm text-slate-500 mb-6 max-w-sm mx-auto">Anda belum memiliki peminjaman ruangan. Mulai dengan menjelajahi ruangan yang tersedia.</p>
             <a href="{{ route('rooms.index') }}"
-               class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 px-5 py-2.5
+               class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-2.5
                       text-sm font-semibold text-white transition-all shadow-lg shadow-blue-600/25">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>

@@ -53,4 +53,54 @@ class RoomController extends Controller
 
         return view('rooms.show', compact('room', 'todayBookings'));
     }
+
+    /**
+     * API: Get room details for the reactive booking panel.
+     */
+    public function apiDetails(Room $room)
+    {
+        abort_if(! $room->is_active, 404);
+
+        return response()->json([
+            'id' => $room->id,
+            'name' => $room->name,
+            'building' => $room->building,
+            'capacity' => $room->capacity,
+            'approval_type' => 'Perlu persetujuan', // Assuming all require approval for now based on context
+            'facilities' => $room->facilities ?? [],
+            'image_url' => $room->imageUrl($room->images[0] ?? null),
+        ]);
+    }
+
+    /**
+     * API: Get room schedule for a specific date for the reactive booking panel.
+     */
+    public function apiSchedule(Request $request, Room $room)
+    {
+        abort_if(! $room->is_active, 404);
+        
+        $request->validate([
+            'date' => 'required|date',
+        ]);
+
+        $date = $request->date;
+
+        $bookings = $room->bookings()
+            ->whereIn('status', ['approved', 'pending'])
+            ->whereDate('start_time', $date)
+            ->orderBy('start_time')
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'start' => $booking->start_time->format('H:i'),
+                    'end' => $booking->end_time->format('H:i'),
+                    'status' => $booking->status,
+                ];
+            });
+
+        return response()->json([
+            'date' => $date,
+            'bookings' => $bookings,
+        ]);
+    }
 }
