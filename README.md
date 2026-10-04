@@ -1,193 +1,284 @@
-# 📊 RoomSense — Software Quality Testing Report
+<div align="center">
 
-## 📌 Deskripsi Sistem
+<br>
 
-**RoomSense** adalah sistem berbasis web untuk peminjaman ruangan kampus yang dikembangkan menggunakan:
+<img src="https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
+<img src="https://img.shields.io/badge/PHP-8.3+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+<img src="https://img.shields.io/badge/TailwindCSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+<img src="https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
+<img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
 
-* **Backend**: Laravel 13
-* **Frontend**: Tailwind CSS, JavaScript
-* **Database**: MySQL
+<br><br>
 
-Sistem ini mendukung dua peran utama:
+# 📊 RoomSense
 
-* **User**: melakukan booking ruangan dan melihat status
-* **Admin**: mengelola ruangan dan melakukan approval booking
+### *Sistem Manajemen Peminjaman Ruangan Kampus Premium*
 
----
+**RoomSense** adalah aplikasi web full-stack yang berfungsi sebagai platform manajemen peminjaman ruangan kampus yang efisien dan terstruktur. Mengakomodasi kebutuhan sivitas akademika dalam mencari, mereservasi, dan mengelola jadwal penggunaan ruangan dengan mudah, transparan, dan bebas bentrok.
 
-## 🎯 Tujuan Pengujian
+[🌐 Demo Live](#) · [🐛 Laporkan Bug](../../issues) · [✨ Request Fitur](../../issues)
 
-Pengujian dilakukan untuk mengevaluasi kualitas sistem berdasarkan aspek:
-
-* Performance (Kinerja)
-* Reliability (Keandalan)
-* Usability (Kemudahan penggunaan)
-* Security (Keamanan)
-* Data Consistency (Konsistensi data)
-
-Pendekatan pengujian berfokus pada:
-
-* Skenario penggunaan nyata
-* Edge cases
-* Validasi logika sistem
-* Role-based access control
-
-> ⚠️ Catatan: Pengujian dilakukan pada lingkungan free hosting, sehingga tidak mencakup stress testing skala besar.
+</div>
 
 ---
 
-## 🧪 Hasil Pengujian
+## 📋 Daftar Isi
 
-| No | Aspek Kualitas   | Skenario Uji                      | Hasil yang Diharapkan | Status                   |
-| -- | ---------------- | --------------------------------- | --------------------- | ------------------------ |
-| 1  | Performance      | Load halaman daftar ruangan       | < 2 detik             | ⚠️ Perlu optimasi        |
-| 2  | Performance      | Dashboard user dengan banyak data | Responsif             | ✅ Baik                   |
-| 3  | Performance      | Dashboard admin (banyak booking)  | < 2 detik             | ⚠️ Perlu optimasi query  |
-| 4  | Performance      | Upload banyak gambar              | Tidak timeout         | ⚠️ Tergantung hosting    |
-| 5  | Performance      | Rekomendasi ruangan alternatif    | Cepat & efisien       | ⚠️ Perlu optimasi        |
-| 6  | Reliability      | Booking di tanggal hari ini       | Valid                 | ⚠️ Risiko timezone       |
-| 7  | Reliability      | Validasi waktu booking            | Tidak boleh sama      | ✅ Valid                  |
-| 8  | Reliability      | Cancel booking approved           | Ditolak               | ✅ Valid                  |
-| 9  | Reliability      | Cancel booking user lain          | Ditolak (403)         | ✅ Aman                   |
-| 10 | Reliability      | Nonaktifkan ruangan aktif         | Konsisten             | ⚠️ Perlu notifikasi      |
-| 11 | Usability        | Login salah password              | Error jelas           | ✅ Baik                   |
-| 12 | Usability        | Booking dari detail ruangan       | Auto select           | ⚠️ UX bisa membingungkan |
-| 13 | Usability        | Approve booking                   | Berhasil & jelas      | ✅ Baik                   |
-| 14 | Usability        | Reject tanpa alasan               | Harus ditolak         | ⚠️ Validasi server perlu |
-| 15 | Usability        | Redirect berdasarkan role         | Benar                 | ✅ Baik                   |
-| 16 | Security         | Akses admin oleh user biasa       | Ditolak               | ✅ Aman                   |
-| 17 | Security         | Akses tanpa login                 | Redirect login        | ✅ Aman                   |
-| 18 | Security         | SQL Injection                     | Tidak berhasil        | ✅ Aman                   |
-| 19 | Security         | XSS                               | Tidak dieksekusi      | ✅ Aman                   |
-| 20 | Security         | CSRF attack                       | Ditolak               | ✅ Aman                   |
-| 21 | Security         | Mass assignment                   | Aman                  | ✅ Aman                   |
-| 22 | Security         | Upload file berbahaya             | Ditolak               | ✅ Aman                   |
-| 23 | Data Consistency | Double booking (pending)          | Masih diperbolehkan   | ✅ Sesuai desain          |
-| 24 | Data Consistency | Double approval (race condition)  | Harus dicegah         | ❌ Perlu perbaikan        |
-| 25 | Data Consistency | Hapus ruangan dengan histori      | Data tetap aman       | ⚠️ Perlu soft delete     |
+- [Tentang Proyek](#-tentang-proyek)
+- [Fitur Utama](#-fitur-utama)
+- [Tech Stack](#-tech-stack)
+- [Arsitektur & Struktur Proyek](#-arsitektur--struktur-proyek)
+- [Instalasi & Setup](#-instalasi--setup)
+- [Konfigurasi Environment](#-konfigurasi-environment)
+- [Database & Seeding](#-database--seeding)
+- [Menjalankan Aplikasi](#-menjalankan-aplikasi)
+- [Panduan Pengguna](#-panduan-pengguna)
+- [Panduan Admin](#-panduan-admin)
+- [Kontribusi](#-kontribusi)
+- [Lisensi](#-lisensi)
 
 ---
 
-## 🔴 Temuan Utama
+## 📊 Tentang Proyek
 
-### 1. Potensi Race Condition pada Approval Booking
+**RoomSense** lahir dari kebutuhan akan sistem reservasi fasilitas kampus yang andal. Platform ini tidak hanya menjadi direktori ruangan yang tersedia, tetapi juga mengotomatisasi alur persetujuan peminjaman sehingga birokrasi menjadi lebih cepat dan efisien.
 
-Jika dua admin melakukan approval secara bersamaan pada booking yang konflik, sistem berpotensi menyetujui keduanya.
+### Mengapa RoomSense?
 
-**Dampak:**
-
-* Double booking pada waktu yang sama
-
----
-
-### 2. Validasi Alasan Penolakan (Reject) Belum Konsisten
-
-Validasi hanya dilakukan di sisi frontend (HTML), belum di backend.
-
-**Dampak:**
-
-* Booking bisa ditolak tanpa alasan
+- 🏫 **Manajemen Terpusat** — Seluruh data ruangan kampus dan fasilitasnya terkelola dalam satu platform.
+- 🗓️ **Sistem Booking Aman** — Mencegah *double booking* dengan validasi *race condition* dan pengecekan ketersediaan jadwal secara ketat.
+- 🔔 **Notifikasi Terintegrasi** — Memberikan informasi kepada pengguna mengenai status *approval* peminjaman ruangan.
+- 🔒 **Keamanan & Role-Based** — Memisahkan hak akses antara Admin (persetujuan & manajemen) dan User biasa (peminjam) dengan *access control* berlapis.
 
 ---
 
-### 3. Optimasi Query (N+1 Problem)
+## ✨ Fitur Utama
 
-Beberapa fitur seperti:
+### 👤 Untuk Peminjam (User)
+| Fitur | Deskripsi |
+|---|---|
+| **Daftar Ruangan** | Halaman pencarian & filter ruangan yang tersedia berdasarkan waktu, kapasitas, maupun fasilitas. |
+| **Detail Ruangan** | Informasi lengkap mengenai fasilitas ruangan, foto, kapasitas maksimal, dan jadwal ketersediaan. |
+| **Form Reservasi** | Fitur untuk melakukan *booking* pada rentang waktu tertentu. Sistem akan memvalidasi agar jadwal tidak beririsan. |
+| **Dashboard Peminjam** | Ringkasan riwayat peminjaman, status *booking* (pending, approved, rejected), dan manajemen profil. |
+| **Notifikasi Status** | Notifikasi kepada user jika peminjaman disetujui atau ditolak (beserta alasan penolakan). |
 
-* Daftar ruangan
-* Rekomendasi alternatif
-
-masih melakukan query berulang.
-
-**Dampak:**
-
-* Performa menurun saat data banyak
-
----
-
-## 🛠️ Rekomendasi Perbaikan
-
-### ✔ 1. Perbaikan Race Condition
-
-Gunakan:
-
-* Database transaction
-* Locking (`lockForUpdate()` jika memungkinkan)
+### 🛡️ Untuk Admin
+| Fitur | Deskripsi |
+|---|---|
+| **Dashboard Admin** | Statistik ringkasan: total ruangan, *booking* masuk, *booking* disetujui, dan yang masih berstatus pending. |
+| **Manajemen Ruangan (CRUD)** | Tambah, edit, nonaktifkan, dan hapus data ruangan kampus beserta fasilitasnya. |
+| **Approval Peminjaman** | Fitur persetujuan peminjaman (*approve/reject*). Admin dapat menyetujui peminjaman atau menolaknya dengan wajib memberikan alasan. |
+| **Manajemen Pengguna** | Melihat dan mengelola data sivitas akademika atau pengguna sistem. |
 
 ---
 
-### ✔ 2. Validasi Backend
+## 🛠️ Tech Stack
 
-Tambahkan validasi:
+### Backend
+- **[Laravel 13](https://laravel.com/)** — PHP Framework (MVC)
+- **PHP 8.3+**
+- **[Pusher / Laravel Echo](https://laravel.com/docs/broadcasting)** — Untuk fitur notifikasi real-time
 
-* Alasan reject wajib diisi saat status = rejected
+### Frontend
+- **Blade Templates** — Templating engine Laravel
+- **[Tailwind CSS v4](https://tailwindcss.com/)** — Utility-first CSS framework
+- **[Vite 8](https://vite.dev/)** — Build tool & dev server frontend cepat
+- **Vanilla JavaScript** — Interaktivitas UI dan penanganan form dinamis
+
+### Database & Storage
+- **SQLite** (default development) / **MySQL** (production)
+- **Laravel File Storage** — Manajemen upload gambar/foto ruangan
+
+### Development Tools
+- **[Laravel Pail](https://github.com/laravel/pail)** — Log viewer real-time di terminal
+- **[Laravel Pint](https://github.com/laravel/pint)** — PHP code style fixer
+- **[PHPUnit 12](https://phpunit.de/)** — Unit testing
 
 ---
 
-### ✔ 3. Optimasi Query
+## 📁 Arsitektur & Struktur Proyek
 
-Gunakan:
+Proyek ini mengikuti arsitektur standar **Laravel MVC (Model-View-Controller)** dengan pemisahan akses untuk logika admin dan pengguna biasa.
 
-* Eager loading (`with()`)
-* Query aggregation
-* Hindari loop query (N+1)
+```
+room-sense/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/                  # Controller khusus Admin (RoomController, BookingController)
+│   │   │   ├── Auth/                   # Controller Autentikasi
+│   │   │   ├── AuthController.php      # Login, Register
+│   │   │   ├── BookingController.php   # Manajemen reservasi user
+│   │   │   ├── RoomController.php      # Daftar & pencarian ruangan
+│   │   │   └── NotificationController.php # Manajemen notifikasi user
+│   ├── Models/
+│   │   ├── User.php            # Model Pengguna & Role
+│   │   ├── Room.php            # Model Ruangan & Fasilitas
+│   │   └── Booking.php         # Model Peminjaman Ruangan
+│
+├── database/
+│   ├── factories/              # Factory untuk seeder data
+│   ├── migrations/             # Skema database (Users, Rooms, Bookings, dsb)
+│   └── seeders/                # Data awal ruangan dan akun dummy
+│
+├── resources/
+│   ├── views/                  # UI aplikasi menggunakan Blade
+│   └── js/ & css/              # Konfigurasi TailwindCSS v4 dan Vite
+│
+└── tests/                      # Skenario pengujian kualitas & unit tests
+```
+
+### Skema Database Utama
+
+| Tabel | Kolom Kunci |
+|---|---|
+| `users` | `name`, `email`, `password`, `role (admin/user)` |
+| `rooms` | `name`, `capacity`, `facilities`, `image`, `status (active/inactive)` |
+| `bookings` | `user_id`, `room_id`, `start_time`, `end_time`, `purpose`, `status (pending/approved/rejected)`, `reject_reason` |
 
 ---
 
-### ✔ 4. Pengaturan Timezone
+## 🚀 Instalasi & Setup
 
-Set:
+### Prasyarat
 
-```env
-APP_TIMEZONE=Asia/Jakarta
+Pastikan lingkungan pengembangan Anda memiliki:
+
+- **PHP** `>= 8.3`
+- **Composer** `>= 2.x`
+- **Node.js** `>= 18.x` & **npm**
+- **Git**
+
+### Langkah 1: Clone Repositori
+
+```bash
+git clone https://github.com/NaovalOcta/RoomSense.git
+cd room-sense
+```
+
+### Langkah 2: Setup Otomatis (Direkomendasikan)
+
+Jalankan script instalasi bawaan yang akan mengurus instalasi package, file `.env`, generate key, migrasi, dan build aset frontend:
+
+```bash
+composer run setup
+```
+
+### Langkah 3: Setup Manual (Alternatif)
+
+Jika ingin melakukan instalasi manual:
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm install
+npm run build
 ```
 
 ---
 
-### ✔ 5. Gunakan Soft Delete
+## ⚙️ Konfigurasi Environment
 
-Agar histori data tidak hilang saat ruangan dihapus.
+Buka file `.env` dan sesuaikan pengaturan seperti database atau URL jika diperlukan:
 
----
+```env
+APP_NAME=RoomSense
+APP_ENV=local
+APP_URL=http://localhost:8000
+APP_TIMEZONE=Asia/Jakarta
 
-## 📊 Ringkasan Kualitas Sistem
-
-| Aspek            | Status               |
-| ---------------- | -------------------- |
-| Performance      | ⚠️ Perlu optimasi    |
-| Reliability      | ✅ Baik               |
-| Usability        | ✅ Baik               |
-| Security         | ✅ Aman               |
-| Data Consistency | ⚠️ Perlu peningkatan |
-
----
-
-## 📈 Kesimpulan
-
-Secara keseluruhan, sistem **RoomSense**:
-
-* ✔ Sudah berjalan dengan baik secara fungsional
-* ✔ Aman dari sisi keamanan dasar
-* ✔ Memiliki struktur sistem yang solid
-
-Namun masih terdapat beberapa hal yang perlu ditingkatkan:
-
-* Optimasi performa
-* Penanganan concurrency
-* Validasi backend
-
-Dengan perbaikan tersebut, sistem akan menjadi lebih stabil, scalable, dan siap digunakan dalam skenario nyata.
+DB_CONNECTION=sqlite
+# Gunakan MySQL untuk production:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_DATABASE=roomsense
+```
 
 ---
 
-## 📌 Keterkaitan dengan Daily Project 6
+## 🗃️ Database & Seeding
 
-Pengujian ini dilakukan berdasarkan hasil analisis kompetitor pada Daily Project 6, yang menghasilkan identifikasi aspek kualitas utama:
+Jika Anda ingin mengisi database dengan data dummy (ruangan contoh dan akun default):
 
-* Performance
-* Reliability
-* Usability
-* Security
-* Data Consistency
+```bash
+php artisan migrate --seed
+```
 
-Sehingga pengujian ini merupakan implementasi langsung dari kebutuhan kualitas sistem yang telah dianalisis sebelumnya.
+Atau untuk me-reset ulang seluruh data:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+---
+
+## ▶️ Menjalankan Aplikasi
+
+Jalankan server aplikasi dan Vite asset compiler melalui perintah ini:
+
+```bash
+composer run dev
+```
+
+Perintah di atas akan menjalankan secara paralel:
+1. `php artisan serve` (Web Server di http://localhost:8000)
+2. `php artisan queue:listen` (Antrean background)
+3. `php artisan pail` (Log Terminal)
+4. `npm run dev` (Vite Server HMR)
+
+---
+
+## 📖 Panduan Pengguna
+
+### Meminjam Ruangan
+1. **Daftar/Login** menggunakan akun Anda.
+2. Buka menu **Daftar Ruangan** dan cari ruangan yang sesuai dengan kebutuhan.
+3. Klik **Booking**, lalu pilih jadwal (Tanggal & Jam mulai - selesai).
+4. Isi tujuan kegiatan.
+5. Klik **Submit Booking**. Peminjaman Anda akan masuk dengan status **Pending**.
+6. Anda bisa melihat status peminjaman di **Dashboard**. Jika ditolak, Anda dapat melihat alasan penolakan dari admin.
+
+---
+
+## 🛡️ Panduan Admin
+
+### Approval Peminjaman
+1. Login dengan kredensial Admin.
+2. Masuk ke panel **Dashboard Admin**.
+3. Buka menu **Approval Booking** untuk melihat daftar peminjaman yang masuk (*Pending*).
+4. Klik **Approve** jika jadwal dan tujuan sesuai.
+5. Klik **Reject** jika ruangan tidak dapat digunakan, dan **wajib** mengisi alasan penolakan.
+
+### Mengelola Ruangan
+1. Di panel Admin, buka menu **Manajemen Ruangan**.
+2. Klik **Tambah Ruangan** dan lengkapi detail seperti kapasitas, nama, serta foto ruangan.
+3. Ruangan yang sedang dalam perbaikan bisa di-set statusnya menjadi tidak aktif agar tidak bisa di-booking.
+
+---
+
+## 🤝 Kontribusi
+
+Kontribusi sangat disambut! Ikuti langkah berikut:
+
+1. **Fork** repositori ini
+2. Buat branch fitur baru: `git checkout -b feat/nama-fitur-baru`
+3. Commit perubahan Anda: `git commit -m 'feat: tambah fitur baru'`
+4. Push ke branch: `git push origin feat/nama-fitur-baru`
+5. Buat **Pull Request**
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah **MIT License**. Lihat file `LICENSE` untuk detail lengkap.
+
+---
+
+<div align="center">
+
+**RoomSense** — *Smart & Easy Campus Room Booking System* 📊
+
+</div>

@@ -10,15 +10,11 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    base: "http://127.0.0.1:8000/",
     server: {
-        host: "0.0.0.0",
-        hmr: {
-            host: "http://127.0.0.1:8000/",
-            protocol: "ws",
-        },
+        host: "127.0.0.1",
         watch: {
             ignored: ["**/storage/framework/views/**"],
         },
     },
 });
+
