@@ -225,6 +225,10 @@
                     </div>
 
                     <!-- Submit -->
+                    <p class="text-right text-sm">
+                        <a href="{{ route('password.request') }}" class="font-semibold text-blue-400 hover:text-blue-300">Lupa Password?</a>
+                    </p>
+
                     <button type="submit"
                             class="btn-primary w-full rounded-xl py-3 text-sm font-semibold text-white transition-all duration-200
                                    shadow-lg shadow-blue-600/25 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0">
