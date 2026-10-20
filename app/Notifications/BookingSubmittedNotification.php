@@ -1,4 +1,5 @@
 <?php
+
 // app/Notifications/BookingSubmittedNotification.php
 
 namespace App\Notifications;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
 
 class BookingSubmittedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use \App\Notifications\Concerns\HasBookingDetails, Queueable;
 
     /**
      * Create a new notification instance.
@@ -39,8 +40,8 @@ class BookingSubmittedNotification extends Notification implements ShouldQueue
             ->subject("Booking Submitted - #{$this->booking->id}")
             ->line("Your booking request for {$this->booking->room->name} has been submitted successfully.")
             ->line("Date/Time: {$this->booking->start_time->format('d M Y, H:i')} - {$this->booking->end_time->format('H:i')} (UTC)")
-            ->line("Purpose: " . ($this->booking->purpose ?? 'No purpose provided'))
-            ->line("Status: Waiting for admin approval.")
+            ->line('Purpose: '.($this->booking->purpose ?? 'No purpose provided'))
+            ->line('Status: Waiting for admin approval.')
             ->action('View Bookings', route('dashboard'));
     }
 
@@ -50,6 +51,7 @@ class BookingSubmittedNotification extends Notification implements ShouldQueue
     public function toDatabase(mixed $notifiable): array
     {
         return [
+            ...$this->bookingDetails('pending'),
             'title' => 'Booking Submitted',
             'message' => "Booking #{$this->booking->id} for {$this->booking->room->name} is pending approval.",
             'action_url' => route('dashboard', [], false),

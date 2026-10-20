@@ -1,6 +1,7 @@
 // RoomSense — app.js
 // Vanilla JS for minor interactivity (confirm dialogs, auto-dismiss alerts)
 import './echo';
+import './notification-details';
 
 document.addEventListener('DOMContentLoaded', () => {
 

@@ -1,12 +1,13 @@
 <?php
+
 // app/Http/Controllers/NotificationController.php
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -36,13 +37,14 @@ class NotificationController extends Controller
     /**
      * Mark a specific notification as read.
      */
-    public function markAsRead(DatabaseNotification $notification): RedirectResponse
+    public function markAsRead(Request $request, string $notification): RedirectResponse|JsonResponse
     {
-        if ($notification->notifiable_id !== Auth::id()) {
-            abort(403);
-        }
-
+        $notification = $request->user()->notifications()->findOrFail($notification);
         $notification->markAsRead();
+
+        if ($request->expectsJson()) {
+            return response()->json(['count' => $request->user()->unreadNotifications()->count()]);
+        }
 
         return redirect()->back();
     }
@@ -50,9 +52,13 @@ class NotificationController extends Controller
     /**
      * Mark all unread notifications as read.
      */
-    public function markAllAsRead(): RedirectResponse
+    public function markAllAsRead(Request $request): RedirectResponse|JsonResponse
     {
         Auth::user()->unreadNotifications->markAsRead();
+
+        if ($request->expectsJson()) {
+            return response()->json(['count' => $request->user()->unreadNotifications()->count()]);
+        }
 
         return redirect()->back();
     }
@@ -63,7 +69,61 @@ class NotificationController extends Controller
     public function unreadCount(): JsonResponse
     {
         return response()->json([
-            'count' => Auth::user()->unreadNotifications()->count()
+            'count' => Auth::user()->unreadNotifications()->count(),
         ]);
+    }
+
+    public function recent(Request $request): JsonResponse
+    {
+        return response()->json([
+            'count' => $request->user()->unreadNotifications()->count(),
+            'notifications' => $request->user()->notifications()->take(5)->get()->map(fn ($notification) => [
+                'id' => $notification->id,
+                'title' => $notification->data['title'] ?? 'Notification',
+                'message' => $notification->data['message'] ?? '',
+                'icon' => $notification->data['icon'] ?? '🔔',
+                'read_at' => $notification->read_at,
+                'created_at_wib' => $notification->created_at->timezone('Asia/Jakarta')->diffForHumans(),
+            ]),
+        ]);
+    }
+
+    public function show(Request $request, string $notification): View
+    {
+        return view('notifications.show', $this->details($request, $notification));
+    }
+
+    public function open(Request $request, string $notification): JsonResponse
+    {
+        $details = $this->details($request, $notification);
+        // Render before marking read, so failed rendering cannot consume an unread item.
+        $html = view('notifications._detail', $details)->render();
+        $details['notification']->markAsRead();
+
+        return response()->json([
+            'html' => $html,
+            'count' => $request->user()->unreadNotifications()->count(),
+        ]);
+    }
+
+    private function details(Request $request, string $id): array
+    {
+        // Scope both id and notifiable_type through the authenticated user's relationship.
+        $notification = $request->user()->notifications()->findOrFail($id);
+        $booking = null;
+        $bookingUrl = null;
+        $bookingId = $notification->data['booking_id'] ?? null;
+        if (is_int($bookingId) || (is_string($bookingId) && ctype_digit($bookingId))) {
+            $query = Booking::with('room')->whereKey($bookingId);
+            if (! $request->user()->isAdmin()) {
+                $query->where('user_id', $request->user()->id);
+            }
+            $booking = $query->first();
+            if ($booking) {
+                $bookingUrl = route($request->user()->isAdmin() ? 'admin.bookings.index' : 'dashboard', ['booking' => $booking->id]);
+            }
+        }
+
+        return compact('notification', 'booking', 'bookingUrl');
     }
 }

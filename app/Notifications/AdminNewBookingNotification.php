@@ -1,4 +1,5 @@
 <?php
+
 // app/Notifications/AdminNewBookingNotification.php
 
 namespace App\Notifications;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notification;
 
 class AdminNewBookingNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use \App\Notifications\Concerns\HasBookingDetails, Queueable;
 
     /**
      * Create a new notification instance.
@@ -35,6 +36,7 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
     public function toDatabase(mixed $notifiable): array
     {
         return [
+            ...$this->bookingDetails('pending'),
             'title' => '📋 New Booking Request',
             'message' => "{$this->booking->user->name} booked {$this->booking->room->name} on {$this->booking->start_time->format('d M Y')}.",
             'action_url' => route('admin.bookings.index', [], false),

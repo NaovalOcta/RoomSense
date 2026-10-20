@@ -130,10 +130,7 @@
 
                         <!-- User Info -->
                         <div class="hidden sm:flex items-center gap-2.5">
-                            <div
-                                class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-700 text-xs font-bold text-slate-200 uppercase ring-1 ring-slate-600">
-                                {{ substr(auth()->user()->name, 0, 1) }}
-                            </div>
+                            <a href="{{ route('profile.edit') }}" aria-label="Profile Settings"><x-profile-avatar :user="auth()->user()" size="h-8 w-8" /></a>
                             <div class="hidden lg:block">
                                 <p class="text-sm font-medium text-slate-200 leading-none">{{ auth()->user()->name }}</p>
                                 @if (auth()->user()->is_admin)
@@ -151,6 +148,7 @@
                         </div>
 
                         <!-- Logout (Desktop) -->
+                        <a href="{{ route('profile.edit') }}" class="hidden md:inline-flex rounded-lg px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white">Profile Settings</a>
                         <form action="{{ route('logout') }}" method="POST" class="hidden md:block">
                             @csrf
                             <button type="submit"
@@ -230,6 +228,7 @@
                 @endif
 
                 <!-- Logout for Mobile -->
+                <a href="{{ route('profile.edit') }}" class="block rounded-lg px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800">Profile Settings</a>
                 <div class="border-t border-slate-800/80 pt-2.5 mt-2.5">
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
@@ -319,6 +318,9 @@
         </div>
     </footer>
 
+    @auth
+        <x-notification-detail-modal />
+    @endauth
     @stack('scripts')
 </body>
 

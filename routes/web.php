@@ -1,11 +1,14 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\RoomController;
+use App\Http\Controllers\AccountEmailController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
-use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,6 +34,23 @@ Route::middleware('guest')->group(function () {
 // EMAIL VERIFICATION ROUTES — Auth, but not yet verified
 // ─────────────────────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/photo', [ProfileController::class, 'photo'])->name('profile.photo');
+    Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::delete('/profile/photo', [ProfileController::class, 'removePhoto'])->name('profile.photo.destroy');
+    Route::patch('/profile/password', [ProfileController::class, 'password'])
+        ->middleware('throttle:6,1,profile-password-')->name('profile.password');
+    Route::post('/profile/logout-sessions', [ProfileController::class, 'logoutSessions'])
+        ->middleware('throttle:6,1,profile-sessions-')->name('profile.sessions.destroy');
+    Route::post('/profile/email', [AccountEmailController::class, 'store'])
+        ->middleware('throttle:6,1,profile-email-')->name('profile.email.store');
+    Route::post('/profile/email/resend', [AccountEmailController::class, 'resend'])
+        ->middleware('throttle:6,1,profile-email-')->name('profile.email.resend');
+    Route::delete('/profile/email', [AccountEmailController::class, 'cancel'])->name('profile.email.cancel');
+    Route::get('/profile/email/verify/{id}/{token}', [AccountEmailController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1,profile-email-verify-'])->name('profile.email.verify');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/email/verify', [VerificationController::class, 'notice'])
@@ -65,10 +85,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // In-App Notifications
     Route::prefix('notifications')->name('notifications.')->group(function () {
-        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('index');
-        Route::patch('{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
-        Route::patch('read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
-        Route::get('unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::patch('{notification}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::patch('read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::get('unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+        Route::get('recent', [NotificationController::class, 'recent'])->name('recent');
+        Route::get('{notification}', [NotificationController::class, 'show'])->name('show');
+        Route::post('{notification}/open', [NotificationController::class, 'open'])->name('open');
     });
 });
 

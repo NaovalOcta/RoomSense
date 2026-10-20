@@ -1,4 +1,5 @@
 <?php
+
 // app/Notifications/BookingCompletedNotification.php
 
 namespace App\Notifications;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
 
 class BookingCompletedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use \App\Notifications\Concerns\HasBookingDetails, Queueable;
 
     /**
      * Create a new notification instance.
@@ -36,9 +37,9 @@ class BookingCompletedNotification extends Notification implements ShouldQueue
     public function toMail(mixed $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("📋 Booking Completed - Thank You!")
+            ->subject('📋 Booking Completed - Thank You!')
             ->line("Your booking of {$this->booking->room->name} has ended.")
-            ->line("Thank you for using the room. Please make sure the room was left clean and the lights are turned off.")
+            ->line('Thank you for using the room. Please make sure the room was left clean and the lights are turned off.')
             ->action('Book Again', route('rooms.index'));
     }
 
@@ -48,6 +49,7 @@ class BookingCompletedNotification extends Notification implements ShouldQueue
     public function toDatabase(mixed $notifiable): array
     {
         return [
+            ...$this->bookingDetails('completed'),
             'title' => 'Booking Completed',
             'message' => "Thank you! Your booking of {$this->booking->room->name} on {$this->booking->start_time->timezone('Asia/Jakarta')->format('d M')} has ended.",
             'action_url' => route('rooms.index', [], false),

@@ -18,17 +18,23 @@ class BookingController extends Controller
      */
     public function index(Request $request): View
     {
-        $status   = $request->query('status', 'all');
-        $query    = Booking::with(['user', 'room'])->orderByDesc('created_at');
+        $status = $request->query('status', 'all');
+        $query = Booking::with(['user', 'room'])->orderByDesc('created_at');
+
+        if ($request->filled('booking')) {
+            $input = $request->validate(['booking' => ['integer', 'min:1']]);
+            $booking = Booking::findOrFail($input['booking']);
+            $query->whereKey($booking->id);
+        }
 
         if ($status !== 'all') {
             $query->where('status', $status);
         }
 
-        $bookings       = $query->paginate(15)->withQueryString();
-        $pendingCount   = Booking::where('status', Booking::STATUS_PENDING)->count();
-        $approvedCount  = Booking::where('status', Booking::STATUS_APPROVED)->count();
-        $rejectedCount  = Booking::where('status', Booking::STATUS_REJECTED)->count();
+        $bookings = $query->paginate(15)->withQueryString();
+        $pendingCount = Booking::where('status', Booking::STATUS_PENDING)->count();
+        $approvedCount = Booking::where('status', Booking::STATUS_APPROVED)->count();
+        $rejectedCount = Booking::where('status', Booking::STATUS_REJECTED)->count();
 
         return view('admin.bookings.index', compact(
             'bookings', 'status', 'pendingCount', 'approvedCount', 'rejectedCount'
@@ -42,7 +48,7 @@ class BookingController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', 'in:approved,rejected'],
-            'notes'  => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         // Extra conflict check when approving: ensure no other approved booking exists
@@ -61,7 +67,7 @@ class BookingController extends Controller
 
         $booking->update([
             'status' => $validated['status'],
-            'notes'  => $validated['notes'] ?? null,
+            'notes' => $validated['notes'] ?? null,
         ]);
 
         // Refresh model to get latest status

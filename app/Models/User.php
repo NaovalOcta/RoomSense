@@ -21,6 +21,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'pending_email_token',
+        'auth_session_version',
     ];
 
     protected function casts(): array
@@ -29,6 +31,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'pending_email_expires_at' => 'datetime',
+            'auth_session_version' => 'integer',
         ];
     }
 
@@ -42,7 +46,8 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->isAdmin()) {
             return true;
         }
-        return !is_null($this->email_verified_at);
+
+        return ! is_null($this->email_verified_at);
     }
 
     public function bookings()

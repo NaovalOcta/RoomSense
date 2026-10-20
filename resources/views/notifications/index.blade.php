@@ -11,7 +11,7 @@
         </div>
 
         @if(auth()->user()->unreadNotifications()->count() > 0)
-            <form action="{{ route('notifications.read-all') }}" method="POST" class="inline-block">
+            <form data-mark-all-read action="{{ route('notifications.read-all') }}" method="POST" class="inline-block">
                 @csrf
                 @method('PATCH')
                 <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-sm font-semibold rounded-xl border border-slate-700 hover:border-slate-500 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
@@ -34,7 +34,7 @@
            class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors focus:outline-none {{ $filter === 'unread' ? 'border-blue-500 text-blue-400 font-semibold' : 'border-transparent text-slate-400 hover:text-slate-200' }}">
             Unread
             @if(auth()->user()->unreadNotifications()->count() > 0)
-                <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400">{{ auth()->user()->unreadNotifications()->count() }}</span>
+                <span data-unread-count class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400">{{ auth()->user()->unreadNotifications()->count() }}</span>
             @endif
         </a>
         <a href="{{ route('notifications.index', ['filter' => 'read']) }}" 
@@ -58,7 +58,7 @@
         @else
             <div class="divide-y divide-slate-800/60">
                 @foreach($notifications as $notification)
-                    <div class="p-4 sm:p-5 flex items-start gap-4 hover:bg-slate-800/20 transition-colors {{ is_null($notification->read_at) ? 'bg-blue-500/5' : '' }}">
+                    <div data-notification-row="{{ $notification->id }}" class="p-4 sm:p-5 flex items-start gap-4 hover:bg-slate-800/20 transition-colors {{ is_null($notification->read_at) ? 'bg-blue-500/5' : '' }}">
                         <span class="text-2xl flex-shrink-0 p-2 bg-slate-800/40 rounded-xl" aria-hidden="true">
                             {{ $notification->data['icon'] ?? '🔔' }}
                         </span>
@@ -84,7 +84,7 @@
 
                                 <div class="flex items-center gap-2">
                                     @if(is_null($notification->read_at))
-                                        <form action="{{ route('notifications.read', $notification->id) }}" method="POST">
+                                        <form data-mark-read action="{{ route('notifications.read', $notification->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="text-xs text-blue-400 hover:text-blue-300 font-semibold px-2.5 py-1.5 hover:bg-blue-500/10 rounded-lg transition-colors">
@@ -93,11 +93,9 @@
                                         </form>
                                     @endif
 
-                                    @if(isset($notification->data['action_url']) && $notification->data['action_url'] !== '#')
-                                        <a href="{{ $notification->data['action_url'] }}" class="inline-flex items-center justify-center text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold px-3 py-1.5 rounded-lg border border-slate-700 hover:border-slate-500 transition-all">
+                                        <a href="{{ route('notifications.show', $notification->id) }}" data-notification-detail="{{ $notification->id }}" data-open-url="{{ route('notifications.open', $notification->id) }}" class="inline-flex items-center justify-center text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold px-3 py-1.5 rounded-lg border border-slate-700 hover:border-slate-500 transition-all">
                                             View Details
                                         </a>
-                                    @endif
                                 </div>
                             </div>
                         </div>

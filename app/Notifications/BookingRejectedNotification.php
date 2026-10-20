@@ -1,4 +1,5 @@
 <?php
+
 // app/Notifications/BookingRejectedNotification.php
 
 namespace App\Notifications;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
 
 class BookingRejectedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use \App\Notifications\Concerns\HasBookingDetails, Queueable;
 
     /**
      * Create a new notification instance.
@@ -36,11 +37,12 @@ class BookingRejectedNotification extends Notification implements ShouldQueue
     public function toMail(mixed $notifiable): MailMessage
     {
         $reason = $this->booking->notes ?? 'No reason provided';
+
         return (new MailMessage)
             ->subject("❌ Booking Rejected - #{$this->booking->id}")
             ->line("We regret to inform you that your booking request for {$this->booking->room->name} has been rejected.")
             ->line("Reason: {$reason}")
-            ->line("If you wish, you can submit another request for a different room or time slot.")
+            ->line('If you wish, you can submit another request for a different room or time slot.')
             ->action('Book Another Room', route('rooms.index'));
     }
 
@@ -50,7 +52,9 @@ class BookingRejectedNotification extends Notification implements ShouldQueue
     public function toDatabase(mixed $notifiable): array
     {
         $reason = $this->booking->notes ?? 'No reason provided';
+
         return [
+            ...$this->bookingDetails('rejected'),
             'title' => 'Booking Rejected',
             'message' => "Booking #{$this->booking->id} was rejected. Reason: {$reason}",
             'action_url' => route('rooms.index', [], false),

@@ -1,4 +1,5 @@
 <?php
+
 // app/Notifications/BookingReminderNotification.php
 
 namespace App\Notifications;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
 
 class BookingReminderNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use \App\Notifications\Concerns\HasBookingDetails, Queueable;
 
     /**
      * Create a new notification instance.
@@ -56,6 +57,7 @@ class BookingReminderNotification extends Notification implements ShouldQueue
     public function toDatabase(mixed $notifiable): array
     {
         return [
+            ...$this->bookingDetails('reminder'),
             'title' => $this->type === 'H-24' ? 'Reminder: Tomorrow' : 'Starting Soon',
             'message' => $this->type === 'H-24'
                 ? "Booking {$this->booking->room->name} starts tomorrow at {$this->booking->start_time->timezone('Asia/Jakarta')->format('H:i')} WIB"

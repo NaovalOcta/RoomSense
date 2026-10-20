@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\RealtimeNotificationEvent;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
-use App\Notifications\BookingSubmittedNotification;
 use App\Notifications\AdminNewBookingNotification;
 use App\Notifications\BookingCancelledNotification;
+use App\Notifications\BookingSubmittedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,15 +19,22 @@ class BookingController extends Controller
     /**
      * Show the user's dashboard — their list of bookings.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
-        $bookings = $user->bookings()
+        $query = $user->bookings();
+        if ($request->filled('booking')) {
+            $input = $request->validate(['booking' => ['integer', 'min:1']]);
+            $booking = $user->bookings()->findOrFail($input['booking']);
+            $query->whereKey($booking->id);
+        }
+
+        $bookings = $query
             ->with('room')
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate(10)->withQueryString();
 
         return view('bookings.index', compact('bookings'));
     }
@@ -51,19 +59,19 @@ class BookingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'room_id'    => ['required', 'exists:rooms,id'],
-            'date'       => ['required', 'date', 'after_or_equal:today'],
+            'room_id' => ['required', 'exists:rooms,id'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required', 'string'],
-            'end_time'   => ['required', 'string', 'after:start_time'],
-            'purpose'    => ['nullable', 'string', 'max:255'],
+            'end_time' => ['required', 'string', 'after:start_time'],
+            'purpose' => ['nullable', 'string', 'max:255'],
         ], [
             'date.after_or_equal' => 'The booking date cannot be in the past.',
-            'end_time.after'      => 'End time must be after start time.',
+            'end_time.after' => 'End time must be after start time.',
         ]);
 
         // Build full datetime strings
-        $startDateTime = $validated['date'] . ' ' . $validated['start_time'] . ':00';
-        $endDateTime   = $validated['date'] . ' ' . $validated['end_time'] . ':00';
+        $startDateTime = $validated['date'].' '.$validated['start_time'].':00';
+        $endDateTime = $validated['date'].' '.$validated['end_time'].':00';
 
         // Verify end time is strictly after start time
         if ($endDateTime <= $startDateTime) {
@@ -76,22 +84,23 @@ class BookingController extends Controller
 
         // Check for booking conflicts on this room
         $hasApprovedConflict = $room->hasConflict($startDateTime, $endDateTime, null, [Booking::STATUS_APPROVED]);
-        $hasPendingConflict  = $room->hasConflict($startDateTime, $endDateTime, null, [Booking::STATUS_PENDING]);
+        $hasPendingConflict = $room->hasConflict($startDateTime, $endDateTime, null, [Booking::STATUS_PENDING]);
 
         if ($hasApprovedConflict) {
             $suggestions = $this->suggestAlternatives($startDateTime, $endDateTime, $room->capacity);
+
             return back()->withInput()->withErrors([
                 'room_id' => 'This room is already booked and approved for the selected time slot. Please see suggested alternatives below or choose a different time.',
             ])->with('suggestions', $suggestions);
         }
 
         $booking = Booking::create([
-            'user_id'    => Auth::id(),
-            'room_id'    => $room->id,
+            'user_id' => Auth::id(),
+            'room_id' => $room->id,
             'start_time' => $startDateTime,
-            'end_time'   => $endDateTime,
-            'purpose'    => $validated['purpose'] ?? null,
-            'status'     => Booking::STATUS_PENDING,
+            'end_time' => $endDateTime,
+            'purpose' => $validated['purpose'] ?? null,
+            'status' => Booking::STATUS_PENDING,
         ]);
 
         // Dispatch notification to USER (In-App + Email) — notifyNow() bypasses queue
@@ -101,7 +110,7 @@ class BookingController extends Controller
         User::where('is_admin', true)->each(function (User $admin) use ($booking) {
             $admin->notifyNow(new AdminNewBookingNotification($booking));
 
-            event(new \App\Events\RealtimeNotificationEvent(
+            event(new RealtimeNotificationEvent(
                 user: $admin,
                 title: '📋 New Booking Request',
                 message: "{$booking->user->name} booked {$booking->room->name}.",
@@ -138,7 +147,7 @@ class BookingController extends Controller
 
         // Soft-cancel with audit fields
         $booking->update([
-            'status'       => Booking::STATUS_CANCELLED,
+            'status' => Booking::STATUS_CANCELLED,
             'cancelled_by' => Auth::id(),
             'cancelled_at' => now(),
         ]);
@@ -154,8 +163,8 @@ class BookingController extends Controller
         return Room::where('capacity', '>=', $requestedCapacity)
             ->where('is_active', true)
             ->get()
-            ->filter(function($room) use ($startDateTime, $endDateTime) {
-                return !$room->hasConflict($startDateTime, $endDateTime);
+            ->filter(function ($room) use ($startDateTime, $endDateTime) {
+                return ! $room->hasConflict($startDateTime, $endDateTime);
             })
             ->sortBy('capacity') // Closest match first
             ->take(3);

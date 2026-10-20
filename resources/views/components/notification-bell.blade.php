@@ -6,7 +6,6 @@
         'title' => $n->data['title'] ?? 'Notification',
         'message' => $n->data['message'] ?? '',
         'icon' => $n->data['icon'] ?? '🔔',
-        'action_url' => $n->data['action_url'] ?? '#',
         'read_at' => $n->read_at,
         'created_at_wib' => $n->created_at->timezone('Asia/Jakarta')->diffForHumans()
     ]), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!}
@@ -17,50 +16,46 @@
     open: false,
     count: {{ auth()->user()->unreadNotifications()->count() }},
     notifications: JSON.parse(document.getElementById('initial-notifications').textContent),
-    async markAsRead(id, actionUrl) {
-        await fetch(`/notifications/${id}/read`, {
-            method: 'PATCH',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        });
-        window.location.href = actionUrl;
+    async refreshNotifications() {
+        try {
+            const response = await fetch('/notifications/recent', { headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error('Request failed');
+            const data = await response.json();
+            this.count = data.count;
+            this.notifications = data.notifications;
+        } catch {
+            this.error = 'Notifikasi belum dapat diperbarui. Silakan coba lagi.';
+        }
     },
+    error: '',
     async markAllAsRead() {
-        await fetch('/notifications/read-all', {
-            method: 'PATCH',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+        try {
+            const response = await fetch('/notifications/read-all', {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                this.error = 'Status baca belum berhasil disimpan.';
+                return;
             }
-        });
-        this.count = 0;
-        this.notifications.forEach(n => n.read_at = new Date());
-        this.open = false;
-        window.location.reload();
+            const data = await response.json();
+            this.count = data.count;
+            this.notifications.forEach(n => n.read_at = new Date());
+            window.dispatchEvent(new CustomEvent('notifications-read', { detail: { count: data.count, all: true } }));
+        } catch {
+            this.error = 'Status baca belum berhasil disimpan. Silakan coba lagi.';
+        }
     },
     initEcho() {
         if (typeof window.Echo !== 'undefined') {
             window.Echo.private('App.Models.User.' + {{ auth()->id() }})
                 .listen('.notification.received', (data) => {
-                    this.count++;
-                    this.notifications.unshift({
-                        id: Date.now(),
-                        title: data.title,
-                        message: data.message,
-                        icon: data.icon,
-                        action_url: data.action_url,
-                        read_at: null,
-                        created_at_wib: 'Baru saja'
-                    });
+                    this.refreshNotifications();
 
-                    // ─── ROLE-BASED BEHAVIOR ───
-                    // Detect admin by checking for the sticky bar element that only renders for admins.
-                    // Admin: Show sticky accumulator bar + update tab title. NO auto-reload.
-                    // User (mahasiswa): Auto-reload as before.
                     const isAdmin = document.getElementById('admin-new-booking-bar') !== null;
 
                     if (isAdmin) {
@@ -94,6 +89,7 @@
     }
 }"
 x-init="initEcho()"
+@notifications-read.window="count = $event.detail.count; notifications.forEach(n => { if ($event.detail.all || n.id === $event.detail.id) n.read_at = new Date(); })"
 class="relative"
 @click.away="open = false">
     <button @click="open = !open"
@@ -133,8 +129,8 @@ class="relative"
             </template>
 
             <template x-for="notif in notifications" :key="notif.id">
-                <div @click="markAsRead(notif.id, notif.action_url)"
-                     class="px-4 py-3.5 hover:bg-slate-800/40 cursor-pointer transition-colors flex items-start gap-3"
+                <button type="button" @click="open = false; window.openRoomSenseNotification(notif.id, $event.currentTarget)"
+                     class="w-full text-left px-4 py-3.5 hover:bg-slate-800/40 cursor-pointer transition-colors flex items-start gap-3"
                      :class="notif.read_at === null ? 'bg-blue-500/5 hover:bg-blue-500/10' : ''">
                     <span class="text-xl flex-shrink-0" x-text="notif.icon"></span>
                     <div class="flex-1 min-w-0">
@@ -143,9 +139,10 @@ class="relative"
                         <span class="text-[10px] text-slate-500 mt-1 block" x-text="notif.created_at_wib"></span>
                     </div>
                     <div x-show="notif.read_at === null" class="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5"></div>
-                </div>
+                </button>
             </template>
         </div>
+        <p x-show="error" x-text="error" role="alert" class="px-4 py-2 text-xs text-rose-400"></p>
 
         <div class="p-2 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between gap-2">
             <button x-show="count > 0"

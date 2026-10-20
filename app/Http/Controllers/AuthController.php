@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,10 +16,11 @@ class AuthController extends Controller
     public function showLoginForm(): View|RedirectResponse
     {
         if (Auth::check()) {
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = Auth::user();
-            return $user->isAdmin() 
-                ? redirect()->route('admin.bookings.index') 
+
+            return $user->isAdmin()
+                ? redirect()->route('admin.bookings.index')
                 : redirect()->route('dashboard');
         }
 
@@ -31,16 +33,18 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = Auth::user();
-            
+
+            $request->session()->put('auth_session_version', $user->auth_session_version);
+
             if ($user->is_demo) {
                 session()->flash('warning', '⚠️ Akun Demo Publik: Jangan gunakan untuk data sensitif. Data booking dapat di-reset sewaktu-waktu. Notifikasi email tidak terkirim (log only).');
             }

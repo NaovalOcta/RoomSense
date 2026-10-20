@@ -1,4 +1,5 @@
 <?php
+
 // app/Notifications/BookingApprovedNotification.php
 
 namespace App\Notifications;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notification;
 
 class BookingApprovedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use \App\Notifications\Concerns\HasBookingDetails, Queueable;
 
     /**
      * Create a new notification instance.
@@ -45,7 +46,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
         }
 
         return $mailMessage
-            ->line("Please follow the guidelines for using the room properly.")
+            ->line('Please follow the guidelines for using the room properly.')
             ->action('View Bookings', route('dashboard'));
     }
 
@@ -55,6 +56,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
     public function toDatabase(mixed $notifiable): array
     {
         return [
+            ...$this->bookingDetails('approved'),
             'title' => 'Booking Approved',
             'message' => "Booking #{$this->booking->id} for {$this->booking->room->name} has been APPROVED.",
             'action_url' => route('dashboard', [], false),
