@@ -137,7 +137,7 @@ class ProfileManagementTest extends TestCase
         $user->save();
         Storage::disk('local')->put($user->profile_photo_path, 'old');
         DB::connection()->beforeExecuting(function ($query) {
-            if (str_starts_with($query, 'update `users`')) {
+            if (str_starts_with(str_replace('"', '`', $query), 'update `users`')) {
                 throw new QueryException('mysql', 'Simulated photo failure', [], new \RuntimeException('Database unavailable'));
             }
         });
@@ -280,8 +280,10 @@ class ProfileManagementTest extends TestCase
     public function test_revocation_database_failure_rolls_back_password_and_session_version(): void
     {
         $user = $this->account();
+        // Exercise GC too: only the account-scoped revocation is the injected failure.
+        config(['session.lottery' => [100, 100]]);
         DB::connection()->beforeExecuting(function ($query) {
-            if (str_starts_with($query, 'delete from `sessions`')) {
+            if (str_starts_with(str_replace('"', '`', $query), 'delete from `sessions`') && str_contains($query, 'user_id')) {
                 throw new QueryException('mysql', 'Simulated session failure', [], new \RuntimeException('Database unavailable'));
             }
         });

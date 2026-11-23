@@ -30,50 +30,48 @@ class AuthenticationRegressionTest extends TestCase
         Notification::fake();
     }
 
-    public function test_testing_configuration_and_mysql_account_are_isolated(): void
+    public function test_testing_configuration_and_database_are_isolated(): void
     {
         $this->assertTrue($this->app->environment('testing'));
-        $this->assertSame('mysql', config('database.default'));
-        $this->assertSame('room_sense_testing', DB::selectOne('SELECT DATABASE() AS db')->db);
+        $this->assertSame('sqlite', config('database.default'));
+        $this->assertSame(':memory:', DB::connection()->getDatabaseName());
         $this->assertSame('database', config('session.driver'));
+        $this->assertSame('sqlite', config('session.connection'));
         $this->assertSame('array', config('mail.default'));
         $this->assertSame('array', config('cache.default'));
         $this->assertSame('sync', config('queue.default'));
-        $this->assertNull(config('broadcasting.default'));
-        try {
-            DB::select('SELECT COUNT(*) FROM `room-sense`.`users`');
-            $this->fail('Testing account must not read the development database.');
-        } catch (QueryException $exception) {
-            $this->assertSame(1142, $exception->errorInfo[1]);
+        $this->assertSame('null', config('broadcasting.default'));
+        foreach (DB::select('PRAGMA database_list') as $database) {
+            $this->assertContains($database->name, ['main', 'temp']);
+            $this->assertSame('', $database->file);
         }
     }
 
-    public function test_bootstrap_guard_rejects_all_three_unsafe_conditions_before_refresh_database(): void
+    public function test_bootstrap_guard_rejects_non_testing_and_neutralizes_unsafe_database_overrides(): void
     {
-        // These subprocesses call createApplication only; they never set up RefreshDatabase.
         $code = <<<'PHP'
         require 'vendor/autoload.php';
         try {
-            (new Tests\Feature\Auth\AuthenticationRegressionTest('probe'))->createApplication();
-            echo 'Guard unexpectedly accepted unsafe configuration';
-            exit(1);
+            $app = (new Tests\Feature\Auth\AuthenticationRegressionTest('probe'))->createApplication();
+            $db = $app['db']->connection();
+            if ($db->getDriverName() !== 'sqlite' || $db->getDatabaseName() !== ':memory:') { exit(2); }
+            echo 'private-memory-only';
         } catch (RuntimeException $exception) {
             echo $exception->getMessage();
         }
         PHP;
         foreach ([
             [['APP_ENV' => 'local'], 'require the testing environment'],
-            [['DB_CONNECTION' => 'sqlite'], 'require the mysql connection'],
-            [['DB_DATABASE' => 'information_schema'], 'require room_sense_testing'],
+            [['DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'room-sense'], 'private-memory-only'],
+            [['DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'room_sense_testing'], 'private-memory-only'],
         ] as [$environment, $message]) {
-            $process = new Process([PHP_BINARY, '-r', $code], base_path(), $environment);
+            $process = new Process([PHP_BINARY, '-d', 'extension=pdo_sqlite', '-r', $code], base_path(), $environment);
             $process->setTimeout(30);
             $process->run();
-            $this->assertTrue($process->isSuccessful(), 'Guard probe must exit cleanly after rejection.');
+            $this->assertTrue($process->isSuccessful(), 'Isolation probe must exit cleanly.');
             $this->assertStringContainsString($message, $process->getOutput());
         }
     }
-
     public function test_login_bad_credentials_and_successful_user_login_regenerate_session(): void
     {
         $user = User::factory()->create();

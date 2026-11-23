@@ -223,7 +223,7 @@ class PasswordResetTest extends TestCase
         $token = $this->token($user);
         $original = $user->getRawOriginal();
         DB::connection()->beforeExecuting(function ($query) {
-            if (str_starts_with($query, 'delete from `password_reset_tokens`')) {
+            if (str_starts_with(str_replace('"', '`', $query), 'delete from `password_reset_tokens`')) {
                 throw new QueryException('mysql', 'Simulated token deletion failure', [], new \RuntimeException('Simulated database failure'));
             }
         });

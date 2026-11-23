@@ -15,17 +15,19 @@ class BookingSeeder extends Seeder
      */
     public function run(): void
     {
+        $today = Carbon::now('Asia/Jakarta')->startOfDay();
         $demoEmail = config('app.demo_user_email');
-        $demoUser = User::where('email', $demoEmail)->first() ?? User::where('is_admin', false)->first();
-        $bobUser = User::where('email', 'bob@roomsense.com')->first() ?? User::where('id', '!=', $demoUser?->id)->first();
+        $borrowers = User::where('is_admin', false)->whereNotNull('email_verified_at');
+        $demoUser = (clone $borrowers)->where('email', $demoEmail)->first()
+            ?? $borrowers->orderBy('id')->first();
         $adminUser = User::where('is_admin', true)->first();
 
-        if (!$demoUser || !$bobUser || !$adminUser) {
+        if (!$demoUser || !$adminUser) {
             $this->command->warn('Users not found, skipping BookingSeeder.');
             return;
         }
 
-        $activeRooms = Room::where('is_active', true)->inRandomOrder()->get();
+        $activeRooms = Room::where('is_active', true)->orderBy('id')->get();
         if ($activeRooms->count() < 2) {
             $this->command->warn('Not enough active rooms to seed bookings.');
             return;
@@ -33,6 +35,10 @@ class BookingSeeder extends Seeder
 
         $roomA = $activeRooms[0];
         $roomB = $activeRooms[1];
+
+        // A new synthetic demonstration lifecycle for the sole default borrower.
+        // Admin approves bookings; it does not stand in for a removed borrower.
+        // These fixtures do not transfer ownership of archived legacy records.
 
         // ---------------------------------------------------------------------
         // A. Data Spesifik untuk Uji Coba Algoritma (4 Data)
@@ -42,18 +48,18 @@ class BookingSeeder extends Seeder
         Booking::create([
             'user_id'    => $demoUser->id,
             'room_id'    => $roomA->id,
-            'start_time' => Carbon::tomorrow()->setTime(9, 0),
-            'end_time'   => Carbon::tomorrow()->setTime(11, 0),
+            'start_time' => $today->copy()->addDay()->setTime(9, 0)->utc(),
+            'end_time'   => $today->copy()->addDay()->setTime(11, 0)->utc(),
             'purpose'    => 'Rapat Divisi Akademik (Data Deterministic - Approved)',
             'status'     => Booking::STATUS_APPROVED,
         ]);
 
         // 2. Pending Booking (Peringatan/Warning) - Besok jam 13:00 - 15:00 di Ruang A
         Booking::create([
-            'user_id'    => $bobUser->id,
+            'user_id'    => $demoUser->id,
             'room_id'    => $roomA->id,
-            'start_time' => Carbon::tomorrow()->setTime(13, 0),
-            'end_time'   => Carbon::tomorrow()->setTime(15, 0),
+            'start_time' => $today->copy()->addDay()->setTime(13, 0)->utc(),
+            'end_time'   => $today->copy()->addDay()->setTime(15, 0)->utc(),
             'purpose'    => 'Diskusi Kelompok Pengantar IT (Data Deterministic - Pending)',
             'status'     => Booking::STATUS_PENDING,
         ]);
@@ -62,8 +68,8 @@ class BookingSeeder extends Seeder
         Booking::create([
             'user_id'    => $demoUser->id,
             'room_id'    => $roomB->id,
-            'start_time' => Carbon::tomorrow()->addDay()->setTime(10, 0),
-            'end_time'   => Carbon::tomorrow()->addDay()->setTime(12, 0),
+            'start_time' => $today->copy()->addDay()->addDay()->setTime(10, 0)->utc(),
+            'end_time'   => $today->copy()->addDay()->addDay()->setTime(12, 0)->utc(),
             'purpose'    => 'Seminar Proposal (Data Deterministic - Rejected)',
             'status'     => Booking::STATUS_REJECTED,
             'notes'      => 'Ruangan sudah di-booking oleh pihak fakultas untuk acara internal.',
@@ -71,21 +77,22 @@ class BookingSeeder extends Seeder
 
         // 4. Cancelled Booking (Jadwal Tersedia) - Lusa jam 14:00 - 16:00 di Ruang B
         Booking::create([
-            'user_id'    => $bobUser->id,
+            'user_id'    => $demoUser->id,
             'room_id'    => $roomB->id,
-            'start_time' => Carbon::tomorrow()->addDay()->setTime(14, 0),
-            'end_time'   => Carbon::tomorrow()->addDay()->setTime(16, 0),
+            'start_time' => $today->copy()->addDay()->addDay()->setTime(14, 0)->utc(),
+            'end_time'   => $today->copy()->addDay()->addDay()->setTime(16, 0)->utc(),
             'purpose'    => 'Persiapan Acara BEM (Data Deterministic - Cancelled)',
             'status'     => Booking::STATUS_CANCELLED,
-            'cancelled_by' => $bobUser->id,
-            'cancelled_at' => now(),
+            'cancelled_by' => $demoUser->id,
+            'cancelled_at' => now('UTC'),
         ]);
 
         // ---------------------------------------------------------------------
         // B. Data Acak/Random untuk UI & Pagination (~30 Data)
         // ---------------------------------------------------------------------
         $faker = \Faker\Factory::create('id_ID');
-        $users = [$demoUser, $bobUser];
+        $faker->seed(1101);
+        $users = [$demoUser];
         
         $purposes = [
             'Kuliah Pengganti', 'Rapat Koordinasi BEM', 'Diskusi Kelompok AI',
@@ -98,25 +105,25 @@ class BookingSeeder extends Seeder
         for ($i = 0; $i < 20; $i++) {
             $user = $faker->randomElement($users);
             $room = $faker->randomElement($activeRooms);
-            $start = Carbon::now()->subDays(rand(1, 30))->setTime(rand(8, 16), 0);
-            $end = (clone $start)->addHours(rand(1, 3));
+            $start = $today->copy()->subDays($i + 1)->setTime($faker->numberBetween(8, 16), 0);
+            $end = (clone $start)->addHours($faker->numberBetween(1, 3));
             $status = $faker->randomElement([Booking::STATUS_APPROVED, Booking::STATUS_REJECTED, Booking::STATUS_CANCELLED, Booking::STATUS_APPROVED]); // Lebih banyak approved
             
             $bookingData = [
                 'user_id'    => $user->id,
                 'room_id'    => $room->id,
-                'start_time' => $start,
-                'end_time'   => $end,
+                'start_time' => $start->copy()->utc(),
+                'end_time'   => $end->copy()->utc(),
                 'purpose'    => $faker->randomElement($purposes) . ' (Historical)',
                 'status'     => $status,
-                'created_at' => $start->subDays(rand(1, 5)),
+                'created_at' => $start->copy()->subDays($faker->numberBetween(1, 5))->utc(),
             ];
 
             if ($status === Booking::STATUS_REJECTED) {
                 $bookingData['notes'] = 'Ditolak karena ruangan sedang dalam perbaikan.';
             } else if ($status === Booking::STATUS_CANCELLED) {
                 $bookingData['cancelled_by'] = $user->id;
-                $bookingData['cancelled_at'] = $start->subDays(1);
+                $bookingData['cancelled_at'] = $start->copy()->subDay()->utc();
             }
 
             Booking::create($bookingData);
@@ -127,8 +134,8 @@ class BookingSeeder extends Seeder
             $user = $faker->randomElement($users);
             $room = $faker->randomElement($activeRooms);
             // 3-14 hari ke depan
-            $start = Carbon::now()->addDays(rand(3, 14))->setTime(rand(8, 15), 0);
-            $end = (clone $start)->addHours(rand(1, 4));
+            $start = $today->copy()->addDays($i + 3)->setTime($faker->numberBetween(8, 15), 0);
+            $end = (clone $start)->addHours($faker->numberBetween(1, 4));
             
             // Periksa agar tidak konflik (secara sederhana, walau faker mungkin saja bentrok, 
             // tapi karena rentangnya jauh peluangnya kecil).
@@ -137,11 +144,11 @@ class BookingSeeder extends Seeder
             Booking::create([
                 'user_id'    => $user->id,
                 'room_id'    => $room->id,
-                'start_time' => $start,
-                'end_time'   => $end,
+                'start_time' => $start->copy()->utc(),
+                'end_time'   => $end->copy()->utc(),
                 'purpose'    => $faker->randomElement($purposes) . ' (Future)',
                 'status'     => $status,
-                'created_at' => now()->subHours(rand(1, 24)),
+                'created_at' => now('UTC')->subHours($faker->numberBetween(1, 24)),
             ]);
         }
     }

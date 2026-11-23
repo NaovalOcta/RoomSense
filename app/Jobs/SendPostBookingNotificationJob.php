@@ -28,7 +28,7 @@ class SendPostBookingNotificationJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $now = now();
+        $now = now('UTC');
 
         Booking::approved()
             ->where('post_booking_sent', false)

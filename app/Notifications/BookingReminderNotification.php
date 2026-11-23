@@ -36,7 +36,7 @@ class BookingReminderNotification extends Notification implements ShouldQueue
      */
     public function toMail(mixed $notifiable): MailMessage
     {
-        $timeString = $this->booking->start_time->timezone('Asia/Jakarta')->format('H:i');
+        $timeString = $this->booking->start_wib->format('H:i');
 
         if ($this->type === 'H-24') {
             return (new MailMessage)
@@ -60,7 +60,7 @@ class BookingReminderNotification extends Notification implements ShouldQueue
             ...$this->bookingDetails('reminder'),
             'title' => $this->type === 'H-24' ? 'Reminder: Tomorrow' : 'Starting Soon',
             'message' => $this->type === 'H-24'
-                ? "Booking {$this->booking->room->name} starts tomorrow at {$this->booking->start_time->timezone('Asia/Jakarta')->format('H:i')} WIB"
+                ? "Booking {$this->booking->room->name} starts tomorrow at {$this->booking->start_wib->format('H:i')} WIB"
                 : "Booking {$this->booking->room->name} starts in 2 hours!",
             'action_url' => route('dashboard', [], false),
             'icon' => $this->type === 'H-24' ? '⏰' : '🔔',

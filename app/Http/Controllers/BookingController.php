@@ -12,6 +12,8 @@ use App\Notifications\BookingSubmittedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -58,27 +60,38 @@ class BookingController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $snapshot = Carbon::now('Asia/Jakarta')->toImmutable();
         $validated = $request->validate([
             'room_id' => ['required', 'exists:rooms,id'],
-            'date' => ['required', 'date', 'after_or_equal:today'],
-            'start_time' => ['required', 'string'],
-            'end_time' => ['required', 'string', 'after:start_time'],
+            'date' => ['bail', 'required', 'string', 'regex:/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', 'date_format:Y-m-d'],
+            'start_time' => ['bail', 'required', 'string', 'regex:/\A(?:[01][0-9]|2[0-3]):[0-5][05]\z/'],
+            'end_time' => ['bail', 'required', 'string', 'regex:/\A(?:[01][0-9]|2[0-3]):[0-5][05]\z/'],
             'purpose' => ['nullable', 'string', 'max:255'],
         ], [
             'date.after_or_equal' => 'The booking date cannot be in the past.',
             'end_time.after' => 'End time must be after start time.',
         ]);
 
-        // Build full datetime strings
-        $startDateTime = $validated['date'].' '.$validated['start_time'].':00';
-        $endDateTime = $validated['date'].' '.$validated['end_time'].':00';
-
-        // Verify end time is strictly after start time
-        if ($endDateTime <= $startDateTime) {
-            return back()->withInput()->withErrors([
-                'end_time' => 'End time must be after start time.',
-            ]);
+        if ($validated['date'] < $snapshot->format('Y-m-d') || $validated['date'] > $snapshot->addDays(14)->format('Y-m-d')) {
+            throw ValidationException::withMessages(['date' => 'Choose a date from today through 14 days ahead (WIB).']);
         }
+
+        // Parse only after strict shape/calendar validation; never normalize invalid input.
+        $start = Carbon::createFromFormat('!Y-m-d H:i', $validated['date'].' '.$validated['start_time'], 'Asia/Jakarta')->toImmutable();
+        $end = Carbon::createFromFormat('!Y-m-d H:i', $validated['date'].' '.$validated['end_time'], 'Asia/Jakarta')->toImmutable();
+        if ($validated['start_time'] < '07:00' || $validated['end_time'] > '21:00') {
+            throw ValidationException::withMessages(['start_time' => 'Booking hours are 07:00–21:00 WIB.']);
+        }
+        $minutes = $start->diffInMinutes($end, false);
+        if ($minutes < 30 || $minutes > 240) {
+            throw ValidationException::withMessages(['end_time' => 'End must follow start on the same day, with a duration of 30–240 minutes.']);
+        }
+        if ($start->lessThan($snapshot)) {
+            throw ValidationException::withMessages(['start_time' => 'Start time must not be earlier than the current server time (WIB).']);
+        }
+
+        $startDateTime = $start->utc()->format('Y-m-d H:i:s');
+        $endDateTime = $end->utc()->format('Y-m-d H:i:s');
 
         $room = Room::findOrFail($validated['room_id']);
 

@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         attributes: ['middleware' => ['web', 'auth']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Search has its own explicit Unicode White_Space normalization.
+        $middleware->trimStrings(except: ['search']);
         $middleware->web(append: [EnsureAccountSessionCurrent::class]);
 
         $middleware->alias([

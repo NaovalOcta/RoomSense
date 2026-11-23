@@ -5,26 +5,53 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Room;
 use Illuminate\View\View;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class RoomController extends Controller
 {
     /**
      * Display all active rooms available for booking.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|Response
     {
+        $search = $request->query('search', '');
+        $search = $search === null ? '' : $search;
+        if (is_string($search) && mb_check_encoding($search, 'UTF-8')) {
+            $search = preg_replace('/^[\x{0009}-\x{000D}\x{0020}\x{0085}\x{00A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}]+|[\x{0009}-\x{000D}\x{0020}\x{0085}\x{00A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}]+$/u', '', $search);
+        }
+
+        $validator = Validator::make(['search' => $search], [
+            'search' => ['bail', 'present', 'string', function ($attribute, $value, $fail) {
+                if (! mb_check_encoding($value, 'UTF-8') || mb_strlen($value, 'UTF-8') > 100) {
+                    $fail('Search must be valid UTF-8 and at most 100 Unicode code points.');
+                }
+            }],
+        ]);
+        if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                throw new ValidationException($validator);
+            }
+
+            return response()->view('rooms.index', [
+                'rooms' => collect(), 'searchValue' => is_string($search) && mb_check_encoding($search, 'UTF-8') ? $search : '',
+                'searchError' => $validator->errors()->first('search'),
+            ], 422);
+        }
+
         $query = Room::where('is_active', true)
             ->with(['bookings' => function ($q) {
-                $now = now();
+                $now = now('UTC');
                 $q->whereIn('status', ['approved', 'pending'])
                   ->where('start_time', '<=', $now)
                   ->where('end_time', '>', $now);
             }]);
 
-        if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('building', 'like', '%' . $request->search . '%');
+        if ($search !== '') {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('building', 'like', '%' . $search . '%');
             });
         }
 
@@ -34,7 +61,7 @@ class RoomController extends Controller
 
         $rooms = $query->orderBy('name')->get();
 
-        return view('rooms.index', compact('rooms'));
+        return view('rooms.index', ['rooms' => $rooms, 'searchValue' => $search]);
     }
 
     /**
@@ -47,7 +74,7 @@ class RoomController extends Controller
         // Load today's bookings for this room so users can see schedule
         $todayBookings = $room->bookings()
             ->whereIn('status', ['approved', 'pending'])
-            ->whereDate('start_time', today())
+            ->onBusinessDate(now('Asia/Jakarta')->format('Y-m-d'))
             ->orderBy('start_time')
             ->get();
 
@@ -80,20 +107,20 @@ class RoomController extends Controller
         abort_if(! $room->is_active, 404);
         
         $request->validate([
-            'date' => 'required|date',
+            'date' => ['bail', 'required', 'string', 'regex:/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', 'date_format:Y-m-d'],
         ]);
 
         $date = $request->date;
 
         $bookings = $room->bookings()
             ->whereIn('status', ['approved', 'pending'])
-            ->whereDate('start_time', $date)
+            ->onBusinessDate($date)
             ->orderBy('start_time')
             ->get()
             ->map(function ($booking) {
                 return [
-                    'start' => $booking->start_time->format('H:i'),
-                    'end' => $booking->end_time->format('H:i'),
+                    'start' => $booking->start_wib->format('H:i'),
+                    'end' => $booking->end_wib->format('H:i'),
                     'status' => $booking->status,
                 ];
             });

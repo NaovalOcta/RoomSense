@@ -2,34 +2,12 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use RuntimeException;
-
-abstract class TestCase extends BaseTestCase
+/** Default database tests retain the pre-bootstrap in-memory identity guard. */
+abstract class TestCase extends IsolatedMemoryTestCase
 {
-    public function createApplication()
+    protected function isolatedSessionDriver(): string
     {
-        $app = parent::createApplication();
-
-        // This runs before Laravel boots RefreshDatabase or other testing traits.
-        if (! $app->environment('testing')) {
-            throw new RuntimeException('Database tests require the testing environment.');
-        }
-
-        if ($app['config']->get('database.default') !== 'mysql') {
-            throw new RuntimeException('Database tests require the mysql connection.');
-        }
-
-        try {
-            $database = $app['db']->connection()->selectOne('SELECT DATABASE() AS db')->db;
-        } catch (\Throwable) {
-            throw new RuntimeException('Cannot verify the testing database; tests stopped.');
-        }
-
-        if ($database !== 'room_sense_testing') {
-            throw new RuntimeException('Database tests require room_sense_testing; tests stopped.');
-        }
-
-        return $app;
+        // Existing authentication regression tests exercise persisted device sessions.
+        return 'database';
     }
 }

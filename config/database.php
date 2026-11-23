@@ -46,6 +46,9 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
+            // Match UTC audit TIMESTAMP values to Laravel's UTC clock.
+            // Booking DATETIME values also follow the explicit UTC storage contract.
+            'timezone' => '+00:00',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),

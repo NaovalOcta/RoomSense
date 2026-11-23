@@ -60,9 +60,9 @@ class Room extends Model
      */
     public function getCurrentStatusAttribute(): string
     {
-        $now = now();
+        $now = now('UTC');
         $currentBookings = $this->relationLoaded('bookings')
-            ? $this->bookings->filter(fn($b) => $b->start_time <= $now && $b->end_time > $now && in_array($b->status, ['approved', 'pending']))
+            ? $this->bookings->filter(fn($b) => $b->start_utc <= $now && $b->end_utc > $now && in_array($b->status, ['approved', 'pending']))
             : $this->bookings()
                 ->whereIn('status', ['approved', 'pending'])
                 ->where('start_time', '<=', $now)

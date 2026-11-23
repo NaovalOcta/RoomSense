@@ -28,7 +28,7 @@ class SendBookingReminderJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $now = now(); // UTC otomatis dari config/app.php
+        $now = now('UTC'); // UTC otomatis dari config/app.php
 
         // ─ Reminder H-24 (jendela 23-24 jam dari sekarang) ─
         Booking::approved()

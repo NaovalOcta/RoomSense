@@ -157,7 +157,7 @@
 
                                 {{-- Date --}}
                                 <td class="px-6 py-4">
-                                    <p class="text-slate-300 whitespace-nowrap">{{ $booking->start_time->format('D, j M Y') }}</p>
+                                    <p class="text-slate-300 whitespace-nowrap">{{ $booking->start_wib->format('D, j M Y') }}</p>
                                 </td>
 
                                 {{-- Time --}}
@@ -166,7 +166,7 @@
                                         <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
-                                        {{ $booking->start_time->format('g:i A') }} – {{ $booking->end_time->format('g:i A') }}
+                                        {{ $booking->start_wib->format('g:i A') }} – {{ $booking->end_wib->format('g:i A') }}
                                     </div>
                                 </td>
 
@@ -246,13 +246,13 @@
                                     <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5"/>
                                     </svg>
-                                    {{ $booking->start_time->format('D, j M Y') }}
+                                    {{ $booking->start_wib->format('D, j M Y') }}
                                 </div>
                                 <div class="flex items-center gap-1.5 px-2 py-1 bg-slate-800 border border-slate-700/50 rounded-lg text-slate-300">
                                     <svg class="h-3.5 w-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    {{ $booking->start_time->format('g:i A') }} – {{ $booking->end_time->format('g:i A') }}
+                                    {{ $booking->start_wib->format('g:i A') }} – {{ $booking->end_wib->format('g:i A') }}
                                 </div>
                             </div>
                             

@@ -5,10 +5,40 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\CarbonImmutable;
 
 class Booking extends Model
 {
     use HasFactory;
+
+    /** Booking DATETIME fields contain UTC wall values, independent of app timezone. */
+    public function getStartUtcAttribute(): CarbonImmutable
+    {
+        return CarbonImmutable::parse($this->getAttributes()['start_time'], 'UTC');
+    }
+
+    public function getEndUtcAttribute(): CarbonImmutable
+    {
+        return CarbonImmutable::parse($this->getAttributes()['end_time'], 'UTC');
+    }
+
+    public function getStartWibAttribute(): CarbonImmutable
+    {
+        return $this->start_utc->setTimezone('Asia/Jakarta');
+    }
+
+    public function getEndWibAttribute(): CarbonImmutable
+    {
+        return $this->end_utc->setTimezone('Asia/Jakarta');
+    }
+
+    public function scopeOnBusinessDate($query, string $date)
+    {
+        $day = CarbonImmutable::createFromFormat('!Y-m-d', $date, 'Asia/Jakarta');
+
+        return $query->where('start_time', '<', $day->addDay()->utc()->format('Y-m-d H:i:s'))
+            ->where('end_time', '>', $day->utc()->format('Y-m-d H:i:s'));
+    }
 
     public const STATUS_PENDING   = 'pending';
     public const STATUS_APPROVED  = 'approved';

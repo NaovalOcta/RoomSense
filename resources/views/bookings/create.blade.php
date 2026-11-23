@@ -83,8 +83,9 @@
                     Date <span class="text-red-400">*</span>
                 </label>
                 <input type="date" id="date" name="date"
-                       value="{{ old('date', now()->format('Y-m-d')) }}"
-                       min="{{ now()->format('Y-m-d') }}"
+                       value="{{ old('date', now('Asia/Jakarta')->format('Y-m-d')) }}"
+                       min="{{ now('Asia/Jakarta')->format('Y-m-d') }}"
+                       max="{{ now('Asia/Jakarta')->addDays(14)->format('Y-m-d') }}"
                        required
                        class="w-full rounded-xl border bg-slate-900/50 px-4 py-3 text-sm text-white
                               transition-colors outline-none
@@ -94,13 +95,14 @@
                 @enderror
             </div>
 
+            <p class="text-xs text-slate-400">Waktu WIB (Asia/Jakarta), 07:00–21:00, interval 5 menit, durasi 30–240 menit.</p>
             <!-- Time Range -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-slate-300 mb-1.5">
                         Start Time <span class="text-red-400">*</span>
                     </label>
-                    <input type="time" id="start_time" name="start_time"
+                    <input type="time" min="07:00" max="21:00" step="300" id="start_time" name="start_time"
                            value="{{ old('start_time', '08:00') }}"
                            required
                            class="w-full rounded-xl border bg-slate-900/50 px-4 py-3 text-sm text-white
@@ -114,7 +116,7 @@
                     <label for="end_time" class="block text-sm font-medium text-slate-300 mb-1.5">
                         End Time <span class="text-red-400">*</span>
                     </label>
-                    <input type="time" id="end_time" name="end_time"
+                    <input type="time" min="07:00" max="21:00" step="300" id="end_time" name="end_time"
                            value="{{ old('end_time', '10:00') }}"
                            required
                            class="w-full rounded-xl border bg-slate-900/50 px-4 py-3 text-sm text-white
@@ -406,9 +408,11 @@
     form.addEventListener('submit', (e) => {
         const start = startTimeInput.value;
         const end = endTimeInput.value;
-        if (start >= end) {
+        const minutes = value => Number(value.slice(0, 2)) * 60 + Number(value.slice(3));
+        const duration = minutes(end) - minutes(start);
+        if (start >= end || duration < 30 || duration > 240) {
             e.preventDefault();
-            alert('Waktu selesai harus setelah waktu mulai.');
+            alert('Waktu selesai harus setelah waktu mulai pada hari yang sama, dengan durasi 30–240 menit.');
         }
     });
 
@@ -526,8 +530,8 @@
         const bsDate = document.getElementById('bs-schedule-date');
         
         // Format Date
-        const dateObj = new Date(dateInput.value);
-        const dateStr = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const dateObj = new Date(dateInput.value + 'T00:00:00+07:00');
+        const dateStr = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta' });
         deskDate.textContent = dateStr;
         bsDate.textContent = dateStr;
         

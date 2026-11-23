@@ -11,8 +11,8 @@ trait HasBookingDetails
             'event_status' => $eventStatus,
             'booking_snapshot' => [
                 'room_name' => $this->booking->room?->name,
-                'start_time' => $this->booking->start_time->toIso8601String(),
-                'end_time' => $this->booking->end_time->toIso8601String(),
+                'start_time' => $this->booking->start_utc->toIso8601String(),
+                'end_time' => $this->booking->end_utc->toIso8601String(),
                 'rejection_reason' => $eventStatus === 'rejected' ? $this->booking->notes : null,
             ],
         ];

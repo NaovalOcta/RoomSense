@@ -161,12 +161,12 @@
 
                                 {{-- Date & Time --}}
                                 <td class="px-6 py-4">
-                                    <p class="text-slate-300 whitespace-nowrap">{{ $booking->start_time->format('j M Y') }}</p>
+                                    <p class="text-slate-300 whitespace-nowrap">{{ $booking->start_wib->format('j M Y') }}</p>
                                     <div class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-slate-700/50 text-xs text-slate-400">
                                         <svg class="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
-                                        {{ $booking->start_time->format('g:i A') }} – {{ $booking->end_time->format('g:i A') }}
+                                        {{ $booking->start_wib->format('g:i A') }} – {{ $booking->end_wib->format('g:i A') }}
                                     </div>
                                 </td>
 

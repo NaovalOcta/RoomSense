@@ -132,7 +132,7 @@
             <div class="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-white">Today's Schedule</h3>
-                    <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">{{ now()->format('M j, Y') }}</span>
+                    <span class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">{{ now('Asia/Jakarta')->format('M j, Y') }} WIB</span>
                 </div>
 
                 @if($todayBookings->isEmpty())
@@ -156,7 +156,7 @@
                                 <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 border-l-4 {{ $booking->status === 'approved' ? 'border-l-red-500' : 'border-l-amber-500' }}">
                                     <div class="flex justify-between items-start mb-1">
                                         <div class="font-medium text-white text-sm">
-                                            {{ $booking->start_time->format('H:i') }} - {{ $booking->end_time->format('H:i') }}
+                                            {{ $booking->start_wib->format('H:i') }} - {{ $booking->end_wib->format('H:i') }}
                                         </div>
                                         <span class="text-[10px] uppercase font-bold tracking-wider {{ $booking->status === 'approved' ? 'text-red-400' : 'text-amber-400' }}">
                                             {{ $booking->status }}

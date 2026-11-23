@@ -45,8 +45,8 @@ class NotificationDetailTest extends TestCase
         $this->assertNull($notice->fresh()->read_at);
         $response = $this->postJson(route('notifications.open', $notice->id))->assertOk()->assertJsonPath('count', 0);
         $this->assertStringContainsString('View Booking', $response->json('html'));
-        $this->assertStringContainsString($booking->start_time->format('d M Y H:i'), $response->json('html'));
-        $this->assertStringContainsString($booking->end_time->format('d M Y H:i'), $response->json('html'));
+        $this->assertStringContainsString($booking->start_wib->format('d M Y H:i'), $response->json('html'));
+        $this->assertStringContainsString($booking->end_wib->format('d M Y H:i'), $response->json('html'));
         $this->assertNotNull($notice->fresh()->read_at);
         $this->get(route('dashboard', ['booking' => $booking->id]))->assertOk()->assertSee('Detail regression');
     }

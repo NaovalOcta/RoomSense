@@ -32,7 +32,7 @@ class RegisterController extends Controller
                         $fail('Email wajib menggunakan domain @webmail.umm.ac.id');
                     }
                 },
-            ],
+            ],  
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 

@@ -21,9 +21,9 @@
             <h3 class="font-semibold text-white">Current booking #{{ $booking->id }}</h3>
             <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <div><dt class="text-slate-500">Room</dt><dd class="break-words text-slate-200">{{ $booking->room?->name ?? 'Ruangan tidak tersedia' }}</dd></div>
-                <div><dt class="text-slate-500">Booking date</dt><dd class="text-slate-200">{{ $booking->start_time->format('d M Y') }}</dd></div>
-                <div><dt class="text-slate-500">Start</dt><dd class="text-slate-200">{{ $booking->start_time->format('d M Y H:i') }}</dd></div>
-                <div><dt class="text-slate-500">End</dt><dd class="text-slate-200">{{ $booking->end_time->format('d M Y H:i') }}</dd></div>
+                <div><dt class="text-slate-500">Booking date</dt><dd class="text-slate-200">{{ $booking->start_wib->format('d M Y') }}</dd></div>
+                <div><dt class="text-slate-500">Start</dt><dd class="text-slate-200">{{ $booking->start_wib->format('d M Y H:i') }}</dd></div>
+                <div><dt class="text-slate-500">End</dt><dd class="text-slate-200">{{ $booking->end_wib->format('d M Y H:i') }}</dd></div>
                 <div><dt class="text-slate-500">Current status</dt><dd class="text-slate-200">{{ $booking->status }}</dd></div>
                 @if($booking->isRejected() && $booking->notes)<div class="sm:col-span-2"><dt class="text-slate-500">Current rejection reason</dt><dd class="whitespace-pre-wrap break-words text-slate-200">{{ $booking->notes }}</dd></div>@endif
             </dl>

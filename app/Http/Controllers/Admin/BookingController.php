@@ -56,8 +56,8 @@ class BookingController extends Controller
             $conflict = Booking::where('room_id', $booking->room_id)
                 ->where('id', '!=', $booking->id)
                 ->where('status', Booking::STATUS_APPROVED)
-                ->where('start_time', '<', $booking->end_time)
-                ->where('end_time', '>', $booking->start_time)
+                ->where('start_time', '<', $booking->end_utc)
+                ->where('end_time', '>', $booking->start_utc)
                 ->exists();
 
             if ($conflict) {

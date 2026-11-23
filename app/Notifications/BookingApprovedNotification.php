@@ -39,7 +39,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
         $mailMessage = (new MailMessage)
             ->subject("✅ Booking Approved - #{$this->booking->id}")
             ->line("Your booking request for {$this->booking->room->name} has been APPROVED.")
-            ->line("Approved Time: {$this->booking->start_time->format('d M Y, H:i')} - {$this->booking->end_time->format('H:i')} (UTC)");
+            ->line("Approved Time: {$this->booking->start_wib->format('d M Y, H:i')} - {$this->booking->end_wib->format('H:i')} (WIB)");
 
         if ($this->booking->notes) {
             $mailMessage->line("Admin Notes: {$this->booking->notes}");

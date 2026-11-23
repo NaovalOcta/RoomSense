@@ -39,7 +39,7 @@ class BookingSubmittedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("Booking Submitted - #{$this->booking->id}")
             ->line("Your booking request for {$this->booking->room->name} has been submitted successfully.")
-            ->line("Date/Time: {$this->booking->start_time->format('d M Y, H:i')} - {$this->booking->end_time->format('H:i')} (UTC)")
+            ->line("Date/Time: {$this->booking->start_wib->format('d M Y, H:i')} - {$this->booking->end_wib->format('H:i')} (WIB)")
             ->line('Purpose: '.($this->booking->purpose ?? 'No purpose provided'))
             ->line('Status: Waiting for admin approval.')
             ->action('View Bookings', route('dashboard'));
